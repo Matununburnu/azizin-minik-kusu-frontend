@@ -1,1 +1,0 @@
-# azizin-minik-kusu
