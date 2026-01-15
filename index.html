@@ -487,14 +487,14 @@
 </head>
 <body>
     <div id="rotateMsg">Lütfen cihazınızı yatay tutun!</div>
-    <audio id="gameSound"><source src="ses.m4a" type="audio/mp4"></audio>
+    <audio id="gameSound"><source src="assets/sounds/ses.m4a" type="audio/mp4"></audio>
     <audio id="jumpSound" preload="auto"><source src="jump.mp3" type="audio/mpeg"></audio>
     <audio id="specialSong">
-        <source src="sarki.mp3" type="audio/mpeg">
+        <source src="assets/sounds/sarki.mp3" type="audio/mpeg">
     </audio>
-    <audio id="deathSound"><source src="death.mp3" type="audio/mpeg"></audio>
-    <video id="bgVideo" loop muted playsinline><source src="koltuk.mp4" type="video/mp4"></video>
-    <img id="nightBg" src="arka_plan2.png">
+    <audio id="deathSound"><source src="assets/sounds/death.mp3" type="audio/mpeg"></audio>
+    <video id="bgVideo" loop muted playsinline><source src="assets/videos/koltuk.mp4" type="video/mp4"></video>
+    <img id="nightBg" src="assets/images/arka_plan2.png">
     <canvas id="gameCanvas"></canvas>
     <div id="ui">0</div>
     <div id="goldDisplay">ALTIN: 0 🪙</div>
@@ -560,14 +560,15 @@
     <div id="highScore">EN YÜKSEK: 0</div>
     <button id="restartBtn">YENİDEN OYNA</button>
 </div>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
 const socket = io("https://azizin-minik-kusu-2.onrender.com", {
   transports: ["websocket"]
 });
+</script>
     // 🔑 CİHAZ ID
     let deviceId = localStorage.getItem("deviceId");
     if (!deviceId) {
@@ -648,16 +649,16 @@ if (snap.exists) {  // Parantezleri kaldırın ()
     let deathSoundPlayed = false;
     let jumpSoundAllowed = true; // ← Müzik çalarken zıplama sesini kontrol eden değişken
     const backgroundDay = new Image(); backgroundDay.src = 'arka_plan.png';
-    const backgroundSpecial = new Image(); backgroundSpecial.src = 'arka_plan2.png';
+    const backgroundSpecial = new Image(); backgroundSpecial.src = "assets/images/arka_plan2.png";
     const backgroundAziz = new Image(); backgroundAziz.src = 'aziz.png';
     let videoMode = false;
     let specialBgMode = false;
     let nightMode = false;
     let azizMode = false;
-    const dogmanImg = new Image(); dogmanImg.src = 'dogman.png';
-    const pepeImg = new Image(); pepeImg.src = 'pepe.png';
-    const dncImg = new Image(); dncImg.src = 'dnc.png';
-    const lugerImg = new Image(); lugerImg.src = 'luger.png';
+    const dogmanImg = new Image(); dogmanImg.src = 'assets/images/dogman.png';
+    const pepeImg = new Image(); pepeImg.src = 'assets/images/pepe.png';
+    const dncImg = new Image(); dncImg.src = 'assets/images/dnc.png';
+    const lugerImg = new Image(); lugerImg.src = 'assets/images/luger.png';
     const images = [dogmanImg, pepeImg, dncImg, lugerImg];
     const pipeImg = new Image(); pipeImg.src = 'https://pixelartmaker.com/art/8afdf6b0f55c0d6.png';
     const bird = { x: 500, y: 250, vy: 0, size: 80, flap: -9, gravity: 0.35 };
