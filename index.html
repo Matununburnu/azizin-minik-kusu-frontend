@@ -563,12 +563,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
 <script>
 const socket = io("https://azizin-minik-kusu-2.onrender.com", {
   transports: ["websocket"]
 });
-
     // 🔑 CİHAZ ID
     let deviceId = localStorage.getItem("deviceId");
     if (!deviceId) {
@@ -590,7 +588,7 @@ const socket = io("https://azizin-minik-kusu-2.onrender.com", {
         const ref = db.collection("leaderboard").doc(deviceId);
         const snap = await ref.get();
         // Eğer bu PC daha önce skor attıysa
-if (snap.exists) {  // Parantezleri kaldırın ()
+if (snap.exists) { // Parantezleri kaldırın ()
     const oldScore = snap.data().score;
     if (score <= oldScore) return;
 }
@@ -661,7 +659,7 @@ if (snap.exists) {  // Parantezleri kaldırın ()
     const lugerImg = new Image(); lugerImg.src = 'assets/images/luger.png';
     const images = [dogmanImg, pepeImg, dncImg, lugerImg];
     const pipeImg = new Image(); pipeImg.src = 'https://pixelartmaker.com/art/8afdf6b0f55c0d6.png';
-    const bird = { x: 500, y: 250, vy: 0, size: 80, flap: -9, gravity: 0.35 };
+    const bird = { x: 500, y: 250, vy: 0, size: 60, flap: -9, gravity: 0.25 }; // Boyut küçültüldü (80 -> 60), gravity yavaşlatıldı (0.35 -> 0.25)
     let baseSpeed = -1.6;
     let currentSpeed = baseSpeed;
     let currentGap = 600;
@@ -824,7 +822,8 @@ if (snap.exists) {  // Parantezleri kaldırın ()
             x: bird.x,
             y: bird.y,
             vy: bird.vy,
-            difficulty: currentDifficulty  // Zorluk modunu sunucuya gönder
+            score: score, // Skor eklendi
+            difficulty: currentDifficulty // Zorluk modunu sunucuya gönder
         });
     }
     function restartGame() {
@@ -893,8 +892,10 @@ if (snap.exists) {  // Parantezleri kaldırın ()
         bird.y += bird.vy;
         socket.emit('update', {
             y: bird.y,
-            vy: bird.vy
+            vy: bird.vy,
+            score: score // Skor eklendi
         });
+        let oldScore = score; // Skor değişikliğini kontrol etmek için
         for (let p of pipes) {
             p.x += currentSpeed;
             if (!p.passed && p.x + pipeWidth < bird.x) {
@@ -932,6 +933,9 @@ if (snap.exists) {  // Parantezleri kaldırın ()
                     azizMode = false;
                 }
             }
+        }
+        if (score !== oldScore) {
+            socket.emit('update', { y: bird.y, vy: bird.vy, score: score }); // Skor değiştiğinde tekrar emit
         }
         pipes = pipes.filter(p => p.x + pipeWidth > -200);
         pipeTimer++;
@@ -999,9 +1003,9 @@ if (snap.exists) {  // Parantezleri kaldırın ()
                 ctx.font = '14px "Press Start 2P"';
                 ctx.fillText(playerName, bird.x - (ctx.measureText(playerName).width / 2), bird.y - 50);
             }
-            // Other players' birds - sadece hareket edenleri göster (vy != 0 veya güncellenmişse)
+            // Other players' birds - sadece hareket edenleri göster (vy != 0 veya güncellenmişse) ve skor farkı 5'ten azsa göster
             otherPlayers.forEach(other => {
-                if (other.started) {  // Sunucudan 'started' flag'i eklenmiş varsayıyoruz
+                if (other.started && Math.abs(other.score - score) <= 5) { // Skor farkı 5'ten azsa göster
                     const otherImg = images[other.birdType];
                     if (otherImg.complete) {
                         ctx.save();
@@ -1033,7 +1037,7 @@ if (snap.exists) {  // Parantezleri kaldırın ()
         if (gameState === 'ready') {
             gameState = 'playing';
             readyMsgEl.style.display = 'none';
-            socket.emit('startGame');  // Sunucuya oyunun başladığını bildir
+            socket.emit('startGame'); // Sunucuya oyunun başladığını bildir
         }
         if (gameState === 'playing') {
             bird.vy = bird.flap;
@@ -1208,9 +1212,9 @@ if (snap.exists) {  // Parantezleri kaldırın ()
         console.log('Bağlantı koptu');
     });
 socket.on('players', (players) => {
-    console.log('Gelen oyuncular:', players);  // ← Bu satırı ekleyin, konsolda gelen veriyi görün
+    console.log('Gelen oyuncular:', players); // ← Bu satırı ekleyin, konsolda gelen veriyi görün
     otherPlayers = players.filter(p => p.id !== socket.id);
-    console.log('Diğer oyuncular (filtrelenmiş):', otherPlayers);  // ← Bu da diğerlerini loglasın
+    console.log('Diğer oyuncular (filtrelenmiş):', otherPlayers); // ← Bu da diğerlerini loglasın
 });
     gameLoop();
 </script>
