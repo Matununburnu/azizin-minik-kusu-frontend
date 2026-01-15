@@ -412,15 +412,15 @@
                 transform: none;
             }
             #ui {
-                font-size: 50px;
+                font-size: 40px; /* Smaller score on mobile */
             }
             #goldDisplay {
-                font-size: 20px;
-                padding: 5px 10px;
+                font-size: 18px;
+                padding: 8px 15px;
             }
             #leaderboard {
                 font-size: 12px;
-                max-width: 200px;
+                max-width: 180px;
                 padding: 10px;
             }
             #leaderboard h3 {
@@ -430,41 +430,55 @@
                 font-size: 10px;
             }
             #readyMsg {
-                font-size: 30px;
+                font-size: 25px;
             }
             #pauseMenu, #settingsMenu, #menu, #shop, #gameOver {
-                min-width: 90vw;
-                padding: 20px;
+                min-width: 95vw;
+                padding: 30px;
+                font-size: 1.2em; /* Larger text for touch */
             }
             #pauseMenu h2, #settingsMenu h2, #menu h1, #shop h2, #gameOver h2 {
-                font-size: 40px;
+                font-size: 35px;
             }
             #pauseMenu button, #startBtn, #restartBtn, #backBtn {
-                font-size: 30px;
-                padding: 20px 60px;
+                font-size: 28px;
+                padding: 25px 70px;
+                margin: 25px 0; /* More spacing */
             }
             #playerNameInput {
-                font-size: 24px;
-                padding: 15px;
-                width: 80vw;
+                font-size: 22px;
+                padding: 18px;
+                width: 85vw;
+            }
+            .bird-select {
+                gap: 30px; /* More space between birds */
             }
             .bird-select button {
-                width: 150px;
-                height: 150px;
+                width: 160px;
+                height: 160px;
+            }
+            .difficulty-buttons {
+                gap: 20px;
             }
             .diff-btn {
-                font-size: 20px;
-                padding: 10px 30px;
+                font-size: 22px;
+                padding: 15px 40px;
+                min-width: 120px;
             }
             #volumeSlider {
-                width: 60%;
+                width: 80%;
+                height: 25px;
+            }
+            .shop-items {
+                gap: 40px; /* Less cramped */
+                flex-wrap: wrap; /* Wrap if needed */
             }
             .shop-item h3 {
-                font-size: 20px;
+                font-size: 22px;
             }
             .buy-btn {
-                font-size: 20px;
-                padding: 10px 30px;
+                font-size: 22px;
+                padding: 15px 40px;
             }
         }
         @media (orientation: portrait) and (max-width: 768px) {
@@ -659,7 +673,7 @@ if (snap.exists) { // Parantezleri kaldırın ()
     const lugerImg = new Image(); lugerImg.src = 'assets/images/luger.png';
     const images = [dogmanImg, pepeImg, dncImg, lugerImg];
     const pipeImg = new Image(); pipeImg.src = 'https://pixelartmaker.com/art/8afdf6b0f55c0d6.png';
-    const bird = { x: 500, y: 250, vy: 0, size: 60, flap: -9, gravity: 0.25 }; // Boyut küçültüldü (80 -> 60), gravity yavaşlatıldı (0.35 -> 0.25)
+    const bird = { x: 500, y: 250, vy: 0, size: 60, flap: -8, gravity: 0.25 }; // Küçültülmüş boyut: 60, aynı fizik
     let baseSpeed = -1.6;
     let currentSpeed = baseSpeed;
     let currentGap = 600;
@@ -783,7 +797,12 @@ if (snap.exists) { // Parantezleri kaldırın ()
         }
     }
     function startGame() {
-        playerName = playerNameInput.value.trim() || 'Misafir';
+        const name = playerNameInput.value.trim();
+        if (name === '') {
+            alert('Lütfen ismini gir!');
+            return;
+        }
+        playerName = name;
         savePlayerName();
         setDifficulty(currentDifficulty);
         gameState = 'ready';
@@ -822,8 +841,8 @@ if (snap.exists) { // Parantezleri kaldırın ()
             x: bird.x,
             y: bird.y,
             vy: bird.vy,
-            score: score, // Skor eklendi
-            difficulty: currentDifficulty // Zorluk modunu sunucuya gönder
+            difficulty: currentDifficulty,
+            score: score // Skor ekle
         });
     }
     function restartGame() {
@@ -893,9 +912,8 @@ if (snap.exists) { // Parantezleri kaldırın ()
         socket.emit('update', {
             y: bird.y,
             vy: bird.vy,
-            score: score // Skor eklendi
+            score: score // Skor güncelle
         });
-        let oldScore = score; // Skor değişikliğini kontrol etmek için
         for (let p of pipes) {
             p.x += currentSpeed;
             if (!p.passed && p.x + pipeWidth < bird.x) {
@@ -933,9 +951,6 @@ if (snap.exists) { // Parantezleri kaldırın ()
                     azizMode = false;
                 }
             }
-        }
-        if (score !== oldScore) {
-            socket.emit('update', { y: bird.y, vy: bird.vy, score: score }); // Skor değiştiğinde tekrar emit
         }
         pipes = pipes.filter(p => p.x + pipeWidth > -200);
         pipeTimer++;
@@ -1003,9 +1018,9 @@ if (snap.exists) { // Parantezleri kaldırın ()
                 ctx.font = '14px "Press Start 2P"';
                 ctx.fillText(playerName, bird.x - (ctx.measureText(playerName).width / 2), bird.y - 50);
             }
-            // Other players' birds - sadece hareket edenleri göster (vy != 0 veya güncellenmişse) ve skor farkı 5'ten azsa göster
+            // Other players' birds - sadece skor farkı küçükse göster (örneğin |score - other.score| <= 5)
             otherPlayers.forEach(other => {
-                if (other.started && Math.abs(other.score - score) <= 5) { // Skor farkı 5'ten azsa göster
+                if (other.started && Math.abs(score - (other.score || 0)) <= 5) { // Skor yakınsa göster
                     const otherImg = images[other.birdType];
                     if (otherImg.complete) {
                         ctx.save();
@@ -1017,7 +1032,7 @@ if (snap.exists) { // Parantezleri kaldırın ()
                         ctx.font = '14px "Press Start 2P"';
                         ctx.fillText(other.name, other.x - (ctx.measureText(other.name).width / 2), other.y - 50);
                     }
-                } else {
+                } else if (!other.started) {
                     // Başlangıç konumunda tut
                     other.x = 500;
                     other.y = 250;
