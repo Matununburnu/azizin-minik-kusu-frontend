@@ -537,7 +537,7 @@
         <div class="shop-item">
             <h3>ÖZEL BİREY DNC</h3>
             <div class="bird-select">
-                <button style="background-image:url('dnc.png');"></button>
+                <button style="background-image:url('assets/images/dnc.png');"></button>
             </div>
             <div class="price-tag"><span>30</span> ALTIN 🪙</div>
             <button id="buyDncBtn" class="buy-btn">SATIN AL</button>
@@ -545,7 +545,7 @@
         <div class="shop-item">
             <h3>ŞAŞKIN LUGER</h3>
             <div class="bird-select">
-                <button style="background-image:url('luger.png');"></button>
+                <button style="background-image:url('assets/images/luger.png');"></button>
             </div>
             <div class="price-tag"><span>50</span> ALTIN 🪙</div>
             <button id="buyLugerBtn" class="buy-btn">SATIN AL</button>
@@ -568,7 +568,7 @@
 const socket = io("https://azizin-minik-kusu-2.onrender.com", {
   transports: ["websocket"]
 });
-</script>
+
     // 🔑 CİHAZ ID
     let deviceId = localStorage.getItem("deviceId");
     if (!deviceId) {
@@ -700,7 +700,7 @@ if (snap.exists) {  // Parantezleri kaldırın ()
         if (dncUnlocked && !document.getElementById('bird2')) {
             const btn = document.createElement('button');
             btn.id = 'bird2';
-            btn.style.backgroundImage = "url('dnc.png')";
+            btn.style.backgroundImage = "url('assets/images/dnc.png')";
             btn.onclick = () => selectBird(2);
             menuBirds.appendChild(btn);
         }
@@ -709,7 +709,7 @@ if (snap.exists) {  // Parantezleri kaldırın ()
         if (lugerUnlocked && !document.getElementById('bird3')) {
             const btn = document.createElement('button');
             btn.id = 'bird3';
-            btn.style.backgroundImage = "url('luger.png')";
+            btn.style.backgroundImage = "url('assets/images/luger.png')";
             btn.onclick = () => selectBird(3);
             menuBirds.appendChild(btn);
         }
