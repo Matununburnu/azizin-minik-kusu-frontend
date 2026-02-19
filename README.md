@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Azizin Minik Kuşu: Online</title>
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            border: 5px solid #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+        #bgVideo, #nightBg, #bidaVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            display: none;
+        }
+        #ui {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 70px;
+            color: #ffffff;
+            text-shadow: 6px 6px 0 #000, -6px -6px 0 #000, 6px -6px 0 #000, -6px 6px 0 #000;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #goldDisplay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            color: #ffd700;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-shadow: 3px 3px 0 #000;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #leaderboard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            max-width: 250px;
+            z-index: 10;
+            text-shadow: 1px 1px 0 #000;
+            overflow: hidden;
+        }
+        #leaderboard h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+        #leaderboardList div {
+            font-size: 10px;
+            margin: 5px 0;
+            white-space: nowrap;
+            overflow: visible;
+            text-align: left;
+        }
+        #readyMsg {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #ffffff;
+            text-shadow: 5px 5px 0 #000, -5px -5px 0 #000, 5px -5px 0 #000, -5px 5px 0 #000;
+            pointer-events: none;
+            z-index: 15;
+            display: none;
+        }
+        #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffaa00, #ffff66);
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 700px;
+            max-width: 900px;
+            z-index: 20;
+            border: 6px solid #000;
+            display: none;
+        }
+        #pauseMenu button {
+            font-size: 48px;
+            padding: 30px 100px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #00ff00, #008800);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
+            text-shadow: 4px 4px 0 #000;
+            margin: 20px 0;
+            width: 80%;
+        }
+        #pauseMenu button:hover {
+            transform: scale(1.05);
+        }
+        #settingsMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #0044aa, #0088ff);
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 700px;
+            max-width: 900px;
+            z-index: 20;
+            border: 6px solid #000;
+            display: none;
+            color: white;
+        }
+        #settingsMenu h2 {
+            font-size: 50px;
+            margin: 0 0 40px;
+            color: #ffffff;
+            text-shadow: 4px 4px 0 #000;
+        }
+        #settingsMenu .volume-label {
+            font-size: 36px;
+            margin: 30px 0 15px;
+            text-shadow: 3px 3px 0 #000;
+        }
+        #volumeValue {
+            font-size: 40px;
+            color: #ffff00;
+            text-shadow: 4px 4px 0 #000;
+            margin: 15px 0;
+        }
+        #volumeSlider {
+            width: 70%;
+            height: 30px;
+            margin: 30px 0;
+        }
+        #settingsMenu #settingsBackBtn {
+            font-size: 48px;
+            padding: 30px 80px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #00ff00, #008800);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
+            text-shadow: 4px 4px 0 #000;
+            margin: 20px;
+        }
+        #settingsMenu #settingsBackBtn:hover {
+            transform: scale(1.05);
+        }
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffff00, #ffaa00);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 600px;
+            max-width: 800px;
+            z-index: 20;
+            border: 6px solid #000;
+            display: block;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffff00, #ffaa00);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 600px;
+            max-width: 800px;
+            z-index: 20;
+            border: 6px solid #000;
+            display: none;
+        }
+        #gameOver h2 {
+            font-size: 60px;
+            color: #ff4444;
+            text-shadow: 6px 6px 0 #000;
+            margin-bottom: 40px;
+        }
+        #currentScore, #highScore {
+            font-size: 45px;
+            margin: 30px 0;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(0,0,0,0.4);
+        }
+        #currentScore {
+            color: #00ff88;
+            text-shadow: 5px 5px 0 #000;
+        }
+        #highScore {
+            color: #ffff00;
+            text-shadow: 5px 5px 0 #000;
+            font-weight: bold;
+        }
+        #shop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #0044aa, #0088ff);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 700px;
+            max-width: 900px;
+            z-index: 20;
+            border: 6px solid #000;
+            display: none;
+            color: white;
+        }
+        #shop h2 {
+            font-size: 50px;
+            margin: 0 0 40px;
+            color: #ff0000;
+            text-shadow: 4px 4px 0 #000;
+        }
+        .shop-items {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            margin: 30px 0;
+        }
+        .shop-item {
+            text-align: center;
+            min-width: 220px;
+        }
+        .shop-item h3 {
+            font-size: 24px;
+            margin: 15px 0;
+            color: #ffff00;
+            text-shadow: 3px 3px #000;
+        }
+        .shop-item .bird-select button {
+            width: 160px;
+            height: 160px;
+        }
+        .price-tag {
+            font-size: 20px;
+            color: #ffd700;
+            text-shadow: 3px 3px #000;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .buy-btn {
+            font-size: 22px;
+            padding: 12px 40px;
+            margin: 8px 5px;
+            border-radius: 12px;
+            min-width: 140px;
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .buy-btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+        #colorSection {
+            margin-top: 30px;
+        }
+        #colorSection h3 {
+            font-size: 24px;
+            color: #ffff00;
+            text-shadow: 3px 3px #000;
+        }
+        .color-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #000;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-btn.selected {
+            transform: scale(1.2);
+            border-color: #ffff00;
+            box-shadow: 0 0 10px #ffff00;
+        }
+        #rainbowBtn {
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+        }
+        #rainbowItem {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #rainbowPrice {
+            font-size: 16px;
+        }
+        #menu h1 {
+            font-size: 50px;
+            margin: 0 0 40px;
+            color: #ffffff;
+            text-shadow: 4px 4px 0 #000;
+        }
+        #playerNameInput {
+            font-size: 32px;
+            padding: 20px;
+            width: 500px;
+            margin: 30px 0;
+            text-align: center;
+            border: 6px solid #000;
+            border-radius: 15px;
+            font-family: 'Press Start 2P', cursive;
+        }
+        .bird-select {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin: 40px 0;
+        }
+        .bird-select button {
+            width: 220px;
+            height: 220px;
+            border: 6px solid #000;
+            border-radius: 25px;
+            background: no-repeat center/cover;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transition: transform 0.3s;
+        }
+        .bird-select button:hover, .bird-select button.selected {
+            transform: scale(1.15);
+        }
+        #bird1 {
+            background-color: #000 !important;
+        }
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 40px 0;
+        }
+        .diff-btn {
+            font-size: 28px;
+            padding: 15px 45px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            transition: all 0.3s;
+            text-shadow: 4px 4px 0 #000;
+            min-width: 140px;
+            text-align: center;
+        }
+        .diff-btn.easy { background: linear-gradient(45deg, #00ff88, #0088ff); color: white; }
+        .diff-btn.medium { background: linear-gradient(45deg, #ffff00, #ff8800); color: black; }
+        .diff-btn.hard { background: linear-gradient(45deg, #ff0088, #8800ff); color: white; }
+        .diff-btn.selected { transform: scale(1.15); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .diff-btn:hover { transform: scale(1.1); }
+        #startBtn, #restartBtn, #backBtn {
+            font-size: 48px;
+            padding: 30px 80px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #00ff00, #008800);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
+            text-shadow: 4px 4px 0 #000;
+            margin: 20px;
+        }
+        #startBtn:hover, #restartBtn:hover, #backBtn:hover {
+            transform: scale(1.05);
+        }
+        #lobbyShopBtn, #lobbySettingsBtn {
+            position: absolute;
+            bottom: 30px;
+            font-size: 32px;
+            padding: 15px 50px;
+            border: 6px solid #000;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            z-index: 30;
+            text-shadow: 4px 4px 0 #000;
+            transition: transform 0.2s;
+        }
+        #lobbyShopBtn {
+            left: 30px;
+            background: linear-gradient(45deg, #ff00ff, #ff8800);
+            color: white;
+        }
+        #lobbySettingsBtn {
+            right: 30px;
+            background: linear-gradient(45deg, #00ffff, #0088ff);
+            color: white;
+        }
+        #lobbyShopBtn:hover, #lobbySettingsBtn:hover { transform: scale(1.1); }
+        #rotateMsg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: #ffffff;
+            text-shadow: 4px 4px 0 #000;
+            pointer-events: none;
+            z-index: 15;
+            display: none;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            canvas {
+                width: 100vw;
+                height: 100vh;
+                top: 0;
+                left: 0;
+                transform: none;
+            }
+            #ui {
+                font-size: 50px;
+            }
+            #goldDisplay {
+                font-size: 20px;
+                padding: 5px 10px;
+            }
+            #leaderboard {
+                font-size: 12px;
+                max-width: 200px;
+                padding: 10px;
+            }
+            #leaderboard h3 {
+                font-size: 14px;
+            }
+            #leaderboardList div {
+                font-size: 10px;
+            }
+            #readyMsg {
+                font-size: 30px;
+            }
+            #pauseMenu, #settingsMenu, #menu, #shop, #gameOver {
+                min-width: 90vw;
+                padding: 20px;
+            }
+            #pauseMenu h2, #settingsMenu h2, #menu h1, #shop h2, #gameOver h2 {
+                font-size: 40px;
+            }
+            #pauseMenu button, #startBtn, #restartBtn, #backBtn {
+                font-size: 30px;
+                padding: 20px 60px;
+            }
+            #playerNameInput {
+                font-size: 24px;
+                padding: 15px;
+                width: 80vw;
+            }
+            .bird-select button {
+                width: 150px;
+                height: 150px;
+            }
+            .diff-btn {
+                font-size: 20px;
+                padding: 10px 30px;
+            }
+            #volumeSlider {
+                width: 60%;
+            }
+            .shop-item h3 {
+                font-size: 20px;
+            }
+            .buy-btn {
+                font-size: 20px;
+                padding: 10px 30px;
+            }
+        }
+        @media (orientation: portrait) and (max-width: 768px) {
+            #rotateMsg {
+                display: block;
+            }
+            canvas, #ui, #goldDisplay, #leaderboard, #readyMsg, #pauseMenu, #settingsMenu, #menu, #shop, #gameOver, #bgVideo, #nightBg {
+                display: none;
+            }
+        }
+        @media (orientation: landscape) and (max-width: 768px) {
+            #rotateMsg {
+                display: none;
+            }
+            canvas, #bgVideo, #nightBg {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="rotateMsg">Lütfen cihazınızı yatay tutun!</div>
+    <audio id="gameSound"><source src="assets/sounds/ses.m4a" type="audio/mp4"></audio>
+    <audio id="jumpSound" preload="auto"><source src="assets/sounds/jump.mp3" type="audio/mpeg"></audio>
+    <audio id="specialSong"><source src="assets/sounds/sarki.mp3" type="audio/mpeg"></audio>
+    <audio id="deathSound"><source src="assets/sounds/death.mp3" type="audio/mpeg"></audio>
+    <video id="bgVideo" loop muted playsinline><source src="assets/videos/koltuk.mp4" type="video/mp4"></video>
+    <video id="bidaVideo" loop muted playsinline><source src="assets/videos/bida.mp4" type="video/mp4"></video>
+    <img id="nightBg" src="assets/images/arka_plan2.png">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">0</div>
+    <div id="goldDisplay">ALTIN: 0 🪙</div>
+    <div id="leaderboard">
+        <h3>LİDER TABLOSU</h3>
+        <div id="leaderboardList">Henüz skor yok...</div>
+    </div>
+    <div id="readyMsg">SPACE veya TIKLA ile Zıpla ve Başla!</div>
+    <div id="pauseMenu">
+        <button id="resumeBtn">OYUNA DÖN</button>
+        <button id="settingsBtn">AYARLAR</button>
+        <button id="mainMenuBtn">ANA MENÜYE DÖN</button>
+    </div>
+    <div id="settingsMenu">
+        <h2>AYARLAR</h2>
+        <div class="volume-label">SES SEVİYESİ</div>
+        <div id="volumeValue">100%</div>
+        <input type="range" id="volumeSlider" min="0" max="100" value="100">
+        <button id="settingsBackBtn">GERİ</button>
+    </div>
+    <button id="lobbyShopBtn">MAĞAZA</button>
+    <button id="lobbySettingsBtn">AYARLAR ⚙️</button>
+    <div id="menu">
+        <input type="text" id="playerNameInput" placeholder="İsmini Gir" maxlength="12">
+        <div class="bird-select" id="menuBirds">
+            <button id="bird0" style="background-image:url('assets/images/dogman.png');"></button>
+            <button id="bird1" style="background-image:url('assets/images/pepe.png'); background-color:#000;"></button>
+        </div>
+        <div class="difficulty-buttons">
+            <div class="diff-btn easy" data-diff="easy">KOLAY</div>
+            <div class="diff-btn medium selected" data-diff="medium">ORTA</div>
+            <div class="diff-btn hard" data-diff="hard">ZOR</div>
+        </div>
+        <button id="startBtn">OYUNA BAŞLA</button>
+    </div>
+    <div id="shop">
+        <h2>MAĞAZA</h2>
+        <div class="shop-items">
+            <div class="shop-item">
+                <h3>ÖZEL BİREY DNC</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/dnc.png');"></button>
+                </div>
+                <div class="price-tag"><span>30</span> ALTIN 🪙</div>
+                <button id="buyDncBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item">
+                <h3>ŞAŞKIN LUGER</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/luger.png');"></button>
+                </div>
+                <div class="price-tag"><span>50</span> ALTIN 🪙</div>
+                <button id="buyLugerBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item">
+                <h3>YARRATIK AZİZ</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/aziz2.png');"></button>
+                </div>
+                <div class="price-tag"><span>100</span> ALTIN 🪙</div>
+                <button id="buyAziz2Btn" class="buy-btn">SATIN AL</button>
+            </div>
+        </div>
+        <div id="colorSection">
+            <h3>İSİM ETİKETİ RENGİ</h3>
+            <div class="color-options">
+                <button class="color-btn" style="background-color: white;" data-color="white"></button>
+                <button class="color-btn" style="background-color: #ff0000;" data-color="red"></button>
+                <button class="color-btn" style="background-color: #0000ff;" data-color="blue"></button>
+                <button class="color-btn" style="background-color: #00ff00;" data-color="green"></button>
+                <button class="color-btn" style="background-color: #ffff00;" data-color="yellow"></button>
+                <button class="color-btn" style="background-color: #ff00ff;" data-color="pink"></button>
+                <button class="color-btn" style="background-color: #ffa500;" data-color="orange"></button>
+                <button class="color-btn" style="background-color: #800080;" data-color="purple"></button>
+                <div id="rainbowItem">
+                    <button id="rainbowBtn" class="color-btn"></button>
+                    <div class="price-tag" id="rainbowPrice"><span>500</span> ALTIN 🪙</div>
+                    <button id="buyRainbowBtn" class="buy-btn">SATIN AL</button>
+                </div>
+            </div>
+        </div>
+        <button id="backBtn">GERİ</button>
+    </div>
+    <div id="gameOver" style="display:none;">
+        <h2>OYUN BİTTİ!</h2>
+        <div id="currentScore">SKOR: 0</div>
+        <div id="highScore">EN YÜKSEK: 0</div>
+        <button id="restartBtn">YENİDEN OYNA</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io("https://azizin-minik-kusu-2.onrender.com", { transports: ["websocket"] });
+
+        let deviceId = localStorage.getItem("deviceId");
+        if (!deviceId) {
+            deviceId = crypto.randomUUID();
+            localStorage.setItem("deviceId", deviceId);
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwDTJsc1kdmZgF4H-6IR3xS6XKATCKlbM",
+            authDomain: "azizin-minik-kusu.firebaseapp.com",
+            projectId: "azizin-minik-kusu",
+            storageBucket: "azizin-minik-kusu.firebasestorage.app",
+            messagingSenderId: "346042546556",
+            appId: "1:346042546556:web:36290628193a584b434cf9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function saveScoreOnline(playerName, score) {
+            const ref = db.collection("leaderboard").doc(deviceId);
+            const snap = await ref.get();
+            if (snap.exists) {
+                const oldScore = snap.data().score;
+                if (score <= oldScore) return;
+            }
+            await ref.set({
+                name: playerName,
+                score: score,
+                deviceId: deviceId,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('ui');
+        const readyMsgEl = document.getElementById('readyMsg');
+        const pauseMenu = document.getElementById('pauseMenu');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const menuEl = document.getElementById('menu');
+        const shopEl = document.getElementById('shop');
+        const gameOverEl = document.getElementById('gameOver');
+        const currentScoreEl = document.getElementById('currentScore');
+        const highScoreEl = document.getElementById('highScore');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const goldDisplay = document.getElementById('goldDisplay');
+        const menuBirds = document.getElementById('menuBirds');
+        const bgVideo = document.getElementById('bgVideo');
+        const bidaVideo = document.getElementById('bidaVideo');
+        const nightBg = document.getElementById('nightBg');
+        const lobbyShopBtn = document.getElementById('lobbyShopBtn');
+        const lobbySettings = document.getElementById('lobbySettingsBtn');
+        const gameSound = document.getElementById('gameSound');
+        const jumpSound = document.getElementById('jumpSound');
+        const specialSong = document.getElementById("specialSong");
+        const deathSound = document.getElementById('deathSound');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        const buyDncBtn = document.getElementById('buyDncBtn');
+        const buyLugerBtn = document.getElementById('buyLugerBtn');
+        const buyAziz2Btn = document.getElementById('buyAziz2Btn');
+        const buyRainbowBtn = document.getElementById('buyRainbowBtn');
+        const rotateMsg = document.getElementById('rotateMsg');
+        const settingsBackBtn = document.getElementById('settingsBackBtn');
+
+        const designWidth = 1920;
+        const designHeight = 1080;
+        let gameState = 'menu';
+        let otherPlayers = [];
+        let score = 0;
+        let gameOver = false;
+        let specialSongPlayed = false;
+        let playerName = localStorage.getItem('azizinKusuPlayerName') || '';
+        let gold = parseInt(localStorage.getItem('azizinKusuGold')) || 0;
+        let dncUnlocked = localStorage.getItem('dncUnlocked') === 'true';
+        let lugerUnlocked = localStorage.getItem('lugerUnlocked') === 'true';
+        let aziz2Unlocked = localStorage.getItem('aziz2Unlocked') === 'true';
+        let rainbowUnlocked = localStorage.getItem('rainbowUnlocked') === 'true';
+        let nameColor = localStorage.getItem('nameColor') || 'white';
+        let isRainbow = localStorage.getItem('isRainbow') === 'true';
+        let currentDifficulty = localStorage.getItem('azizinKusuDifficulty') || 'medium';
+        let highScore = parseInt(localStorage.getItem('azizinKusuHighScore')) || 0;
+        let musicPlayedThisGame = false;
+        let volume = parseInt(localStorage.getItem('azizinKusuVolume')) || 100;
+        let selectedBird = parseInt(localStorage.getItem('azizinKusuSelectedBird')) || 0;
+        let lobbySettingsOpen = false;
+        let deathSoundPlayed = false;
+        let jumpSoundAllowed = true;
+        let videoPlayed = false;
+        let bidaVideoMode = false;
+
+        const backgroundDay = new Image(); backgroundDay.src = 'assets/images/arka_plan.png';
+        const backgroundSpecial = new Image(); backgroundSpecial.src = "assets/images/arka_plan2.png";
+        const backgroundAziz = new Image(); backgroundAziz.src = 'assets/images/aziz.png';
+        let videoMode = false;
+        let specialBgMode = false;
+        let nightMode = false;
+        let azizMode = false;
+
+        const dogmanImg = new Image(); dogmanImg.src = 'assets/images/dogman.png';
+        const pepeImg = new Image(); pepeImg.src = 'assets/images/pepe.png';
+        const dncImg = new Image(); dncImg.src = 'assets/images/dnc.png';
+        const lugerImg = new Image(); lugerImg.src = 'assets/images/luger.png';
+        const aziz2Img = new Image(); aziz2Img.src = 'assets/images/aziz2.png';
+        const images = [dogmanImg, pepeImg, dncImg, lugerImg, aziz2Img];
+        const pipeImg = new Image(); pipeImg.src = 'https://pixelartmaker.com/art/8afdf6b0f55c0d6.png';
+
+        const bird = { 
+            x: 500, 
+            y: 250, 
+            vy: 0, 
+            size: 80,          // Eski çalışan boyuta geri döndük
+            flap: -9, 
+            gravity: 0.35 
+        };
+
+        let baseSpeed = -1.6;
+        let currentSpeed = baseSpeed;
+        let currentGap = 600;
+        let pipes = [];
+        const pipeWidth = 180;
+        let pipeTimer = 0;
+        let menuOpen = false;
+        let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        gameSound.addEventListener('ended', () => {
+            jumpSoundAllowed = true;
+        });
+
+        if (playerName) playerNameInput.value = playerName;
+        highScoreEl.textContent = `En Yüksek: ${highScore}`;
+        gameSound.volume = volume / 100;
+        jumpSound.volume = volume / 100;
+        deathSound.volume = volume / 100;
+        specialSong.volume = volume / 100;
+        volumeSlider.value = volume;
+        volumeValue.textContent = volume + '%';
+
+        function updateGoldDisplay() {
+            goldDisplay.innerHTML = `ALTIN: ${gold} <span style="font-size:1.2em;">🪙</span>`;
+        }
+
+        function savePlayerName() {
+            localStorage.setItem('azizinKusuPlayerName', playerNameInput.value.trim());
+        }
+
+        function saveDifficulty() {
+            localStorage.setItem('azizinKusuDifficulty', currentDifficulty);
+        }
+
+        function addDncToMenu() {
+            if (dncUnlocked && !document.getElementById('bird2')) {
+                const btn = document.createElement('button');
+                btn.id = 'bird2';
+                btn.style.backgroundImage = "url('assets/images/dnc.png')";
+                btn.onclick = () => selectBird(2);
+                menuBirds.appendChild(btn);
+            }
+        }
+
+        function addLugerToMenu() {
+            if (lugerUnlocked && !document.getElementById('bird3')) {
+                const btn = document.createElement('button');
+                btn.id = 'bird3';
+                btn.style.backgroundImage = "url('assets/images/luger.png')";
+                btn.onclick = () => selectBird(3);
+                menuBirds.appendChild(btn);
+            }
+        }
+
+        function addAziz2ToMenu() {
+            if (aziz2Unlocked && !document.getElementById('bird4')) {
+                const btn = document.createElement('button');
+                btn.id = 'bird4';
+                btn.style.backgroundImage = "url('assets/images/aziz2.png')";
+                btn.onclick = () => selectBird(4);
+                menuBirds.appendChild(btn);
+            }
+        }
+
+        function loadLeaderboard() {
+            const q = db.collection("leaderboard").orderBy("score", "desc").limit(10);
+            q.onSnapshot((snapshot) => {
+                leaderboardList.innerHTML = "";
+                let rank = 1;
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const div = document.createElement("div");
+                    div.textContent = `${rank}. ${d.name} - ${d.score}`;
+                    leaderboardList.appendChild(div);
+                    rank++;
+                });
+                if (snapshot.empty) {
+                    leaderboardList.innerHTML = "Henüz skor yok";
+                }
+            });
+        }
+
+        function unlockDNC() {
+            if (gold >= 30 && !dncUnlocked) {
+                gold -= 30;
+                dncUnlocked = true;
+                localStorage.setItem('dncUnlocked', 'true');
+                localStorage.setItem('azizinKusuGold', gold);
+                updateGoldDisplay();
+                buyDncBtn.textContent = 'SATIN ALINDI!';
+                buyDncBtn.disabled = true;
+                addDncToMenu();
+            } else if (gold < 30) {
+                alert('Yeterli altın yok!');
+            }
+        }
+
+        function unlockLuger() {
+            if (gold >= 50 && !lugerUnlocked) {
+                gold -= 50;
+                lugerUnlocked = true;
+                localStorage.setItem('lugerUnlocked', 'true');
+                localStorage.setItem('azizinKusuGold', gold);
+                updateGoldDisplay();
+                buyLugerBtn.textContent = 'SATIN ALINDI!';
+                buyLugerBtn.disabled = true;
+                addLugerToMenu();
+            } else if (gold < 50) {
+                alert('Yeterli altın yok!');
+            }
+        }
+
+        function unlockAziz2() {
+            if (gold >= 100 && !aziz2Unlocked) {
+                gold -= 100;
+                aziz2Unlocked = true;
+                localStorage.setItem('aziz2Unlocked', 'true');
+                localStorage.setItem('azizinKusuGold', gold);
+                updateGoldDisplay();
+                buyAziz2Btn.textContent = 'SATIN ALINDI!';
+                buyAziz2Btn.disabled = true;
+                addAziz2ToMenu();
+            } else if (gold < 100) {
+                alert('Yeterli altın yok!');
+            }
+        }
+
+        function selectNameColor(color) {
+            nameColor = color;
+            localStorage.setItem('nameColor', color);
+            isRainbow = false;
+            localStorage.setItem('isRainbow', 'false');
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.color === color) btn.classList.add('selected');
+            });
+            document.getElementById('rainbowBtn').classList.remove('selected');
+        }
+
+        function selectRainbow() {
+            if (rainbowUnlocked) {
+                isRainbow = true;
+                localStorage.setItem('isRainbow', 'true');
+                document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+                document.getElementById('rainbowBtn').classList.add('selected');
+            }
+        }
+
+        function unlockRainbow() {
+            if (gold >= 500 && !rainbowUnlocked) {
+                gold -= 500;
+                rainbowUnlocked = true;
+                localStorage.setItem('rainbowUnlocked', 'true');
+                localStorage.setItem('azizinKusuGold', gold);
+                updateGoldDisplay();
+                buyRainbowBtn.textContent = 'SATIN ALINDI!';
+                buyRainbowBtn.disabled = true;
+                document.getElementById('rainbowPrice').style.display = 'none';
+                document.getElementById('rainbowBtn').onclick = selectRainbow;
+                selectRainbow();
+            } else if (gold < 500) {
+                alert('Yeterli altın yok!');
+                return;
+            }
+        }
+
+        let rainbowOffset = 0;
+        function drawRainbowText(text, x, y) {
+            const colors = ['#ffff00', '#0000ff', '#00ff00', '#ff0000', '#800080', '#ff69b4', '#ffa500'];
+            ctx.font = '12px "Press Start 2P"';
+            let totalWidth = 0;
+            for (let char of text) totalWidth += ctx.measureText(char).width;
+            let offsetX = x - totalWidth / 2;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const colorIndex = Math.floor((rainbowOffset + i) % colors.length);
+                ctx.fillStyle = colors[colorIndex];
+                ctx.fillText(char, offsetX, y);
+                offsetX += ctx.measureText(char).width;
+            }
+            rainbowOffset += 0.1;
+            if (rainbowOffset >= colors.length) rainbowOffset = 0;
+        }
+
+        function selectBird(id) {
+            if ((id === 2 && !dncUnlocked) || (id === 3 && !lugerUnlocked) || (id === 4 && !aziz2Unlocked)) return;
+            selectedBird = id;
+            localStorage.setItem('azizinKusuSelectedBird', id);
+            document.querySelectorAll('#menuBirds button').forEach((b, i) => {
+                b.classList.toggle('selected', i === id);
+            });
+        }
+
+        function setDifficulty(diff) {
+            currentDifficulty = diff;
+            saveDifficulty();
+            switch(diff) {
+                case 'easy': baseSpeed = -1.6; break;
+                case 'medium': baseSpeed = -2.2; break;
+                case 'hard': baseSpeed = -3.0; break;
+            }
+            currentSpeed = baseSpeed;
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.diff === diff);
+            });
+        }
+
+        function increaseSpeed() {
+            if (score > 0 && score % 5 === 0) {
+                currentSpeed -= 0.2;
+            }
+        }
+
+        function startGame() {
+            const name = playerNameInput.value.trim();
+            if (name === '') {
+                alert('Lütfen ismini gir!');
+                return;
+            }
+            playerName = name;
+            savePlayerName();
+            setDifficulty(currentDifficulty);
+            gameState = 'ready';
+            menuEl.style.display = 'none';
+            shopEl.style.display = 'none';
+            lobbyShopBtn.style.display = 'none';
+            lobbySettings.style.display = 'none';
+            goldDisplay.style.display = 'none';
+            readyMsgEl.style.display = 'block';
+            score = 0;
+            musicPlayedThisGame = false;
+            jumpSoundAllowed = true;
+            gameSound.pause();
+            gameSound.currentTime = 0;
+            scoreEl.textContent = '0';
+            bird.y = 250;
+            bird.vy = 0;
+            pipes = [];
+            pipeTimer = 0;
+            videoMode = false;
+            specialBgMode = false;
+            nightMode = false;
+            azizMode = false;
+            bidaVideoMode = false;
+            bgVideo.style.display = 'none';
+            bgVideo.pause();
+            bidaVideo.style.display = 'none';
+            bidaVideo.pause();
+            nightBg.style.display = 'none';
+            createPipe();
+            deathSoundPlayed = false;
+            jumpSound.play().catch(() => {});
+            jumpSound.pause();
+            jumpSound.currentTime = 0;
+            menuOpen = false;
+            socket.emit('join', {
+                name: playerName,
+                birdType: selectedBird,
+                x: bird.x,
+                y: bird.y,
+                vy: bird.vy,
+                difficulty: currentDifficulty,
+                score: score,
+                nameColor: nameColor,
+                isRainbow: isRainbow
+            });
+        }
+
+        function restartGame() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('azizinKusuHighScore', highScore);
+            }
+            gold += score;
+            localStorage.setItem('azizinKusuGold', gold);
+            updateGoldDisplay();
+            gameState = 'menu';
+            menuEl.style.display = 'block';
+            lobbyShopBtn.style.display = 'block';
+            lobbySettings.style.display = 'block';
+            goldDisplay.style.display = 'block';
+            gameOverEl.style.display = 'none';
+            readyMsgEl.style.display = 'none';
+            pauseMenu.style.display = 'none';
+            settingsMenu.style.display = 'none';
+            gameSound.pause();
+            selectBird(selectedBird);
+            deathSoundPlayed = false;
+            menuOpen = false;
+            socket.emit('leave');
+        }
+
+        function openPauseMenu() {
+            pauseMenu.style.display = 'block';
+            goldDisplay.style.display = 'block';
+            menuOpen = true;
+        }
+
+        function resumeGame() {
+            pauseMenu.style.display = 'none';
+            settingsMenu.style.display = 'none';
+            goldDisplay.style.display = 'none';
+            menuOpen = false;
+        }
+
+        function goToMainMenu() {
+            gameState = 'menu';
+            pauseMenu.style.display = 'none';
+            settingsMenu.style.display = 'none';
+            gameOverEl.style.display = 'none';
+            menuEl.style.display = 'block';
+            lobbyShopBtn.style.display = 'block';
+            lobbySettings.style.display = 'block';
+            goldDisplay.style.display = 'block';
+            gameSound.pause();
+            menuOpen = false;
+            socket.emit('leave');
+        }
+
+        function createPipe() {
+            const topHeight = Math.random() * 200 + 150;
+            pipes.push({ 
+                x: designWidth, 
+                top: topHeight, 
+                bottom: designHeight - topHeight - currentGap, 
+                passed: false 
+            });
+        }
+
+        // ESKİ ÇALIŞAN HİTBOX MANTIĞI - TOLERANSSIZ
+function checkCollision() {
+    // ekran sınırları
+    if (bird.y + bird.size / 2 > designHeight || bird.y - bird.size / 2 < 0) {
+        return true;
+    }
+
+    for (let p of pipes) 
+        // yatay çarpışma
+        if (bird.x + bird.size / 2 > p.x && bird.x - bird.size / 2 < p.x + pipeWidth) {
+            // dikey çarpışma
+            if (bird.y - bird.size / 2 < p.top || bird.y + bird.size / 2 > designHeight - p.bottom) {
+                return true;
+            }
+        }
+    }
+
+        function update() {
+            if (gameState !== 'playing') return;
+            bird.vy += bird.gravity;
+            bird.y += bird.vy;
+            socket.emit('update', {
+                y: bird.y,
+                vy: bird.vy,
+                score: score
+            });
+            for (let p of pipes) {
+                p.x += currentSpeed;
+                if (!p.passed && p.x + pipeWidth < bird.x) {
+                    p.passed = true;
+                    score++;
+                    scoreEl.textContent = score;
+                    if (score > 40 && !specialSongPlayed) {
+                        specialSongPlayed = true;
+                        specialSong.currentTime = 0;
+                        specialSong.play().catch(() => {});
+                    }
+                    increaseSpeed();
+                    if (score === 3 && !musicPlayedThisGame) {
+                        musicPlayedThisGame = true;
+                        gameSound.currentTime = 0;
+                        gameSound.play().catch(() => {});
+                        jumpSoundAllowed = false;
+                    }
+                    if (score > 5 && !videoMode) {
+                        videoMode = true;
+                        bgVideo.style.display = 'block';
+                        bgVideo.play().catch(() => {});
+                    }
+                    if (score > 10 && !specialBgMode) {
+                        specialBgMode = true;
+                    }
+                    if (score > 12 && !nightMode) {
+                        nightMode = true;
+                        nightBg.style.display = 'block';
+                    }
+                    if (score > 20 && !azizMode) {
+                        azizMode = true;
+                    }
+                    if (score > 30 && azizMode) {
+                        azizMode = false;
+                    }
+                    if (score > 80 && !bidaVideoMode) {
+                        bidaVideoMode = true;
+                        bidaVideo.style.display = 'block';
+                        bidaVideo.play().catch(() => {});
+                    }
+                }
+            }
+            pipes = pipes.filter(p => p.x + pipeWidth > -200);
+            pipeTimer++;
+            if (pipeTimer > 350) {
+                createPipe();
+                pipeTimer = 0;
+            }
+            if (checkCollision() && !deathSoundPlayed) {
+                saveScoreOnline(playerName, score);
+                jumpSound.pause();
+                jumpSound.currentTime = 0;
+                deathSound.currentTime = 0;
+                deathSound.play().catch(() => {});
+                deathSoundPlayed = true;
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('azizinKusuHighScore', highScore);
+                }
+                currentScoreEl.textContent = `SKOR: ${score}`;
+                highScoreEl.textContent = `EN YÜKSEK: ${highScore}`;
+                gameState = 'gameOver';
+                gameOverEl.style.display = 'block';
+                readyMsgEl.style.display = 'none';
+                pauseMenu.style.display = 'none';
+                settingsMenu.style.display = 'none';
+                gameSound.pause();
+                specialSong.pause();
+                specialSong.currentTime = 0;
+                socket.emit('leave');
+            }
+        }
+
+        function draw() {
+            ctx.save();
+            ctx.scale(canvas.width / designWidth, canvas.height / designHeight);
+            ctx.clearRect(0, 0, designWidth, designHeight);
+            if (azizMode && backgroundAziz.complete) {
+                ctx.drawImage(backgroundAziz, 0, 0, designWidth, designHeight);
+            } else if (nightMode && backgroundSpecial.complete) {
+                ctx.drawImage(backgroundSpecial, 0, 0, designWidth, designHeight);
+            } else if (specialBgMode && backgroundSpecial.complete) {
+                ctx.drawImage(backgroundSpecial, 0, 0, designWidth, designHeight);
+            } else if (score > 12 && backgroundDay.complete) {
+                ctx.drawImage(backgroundDay, 0, 0, designWidth, designHeight);
+            } else if (!videoMode && backgroundDay.complete) {
+                ctx.drawImage(backgroundDay, 0, 0, designWidth, designHeight);
+            }
+if (gameState === 'playing' || gameState === 'ready') {
+    if (pipeImg.complete) {
+        for (let p of pipes) {
+            // üst boru
+            ctx.save();
+            ctx.translate(p.x + pipeWidth / 2, p.top);
+            ctx.scale(1, -1);
+            ctx.drawImage(pipeImg, -pipeWidth / 2, 0, pipeWidth, p.top + 200);
+            ctx.restore();
+
+            // alt boru
+            const extraHeight = 200;
+            ctx.drawImage(pipeImg, p.x, designHeight - p.bottom - extraHeight, pipeWidth, p.bottom + extraHeight);
+        } // ← for döngüsü kapandı
+    } // ← pipeImg.complete if kapandı
+
+    const ownImg = images[selectedBird];
+    if (ownImg.complete) {
+        ctx.save();
+        ctx.translate(bird.x, bird.y);
+        ctx.rotate(bird.vy * 0.04);
+        ctx.drawImage(ownImg, -bird.size / 2, -bird.size / 2, bird.size, bird.size);
+        ctx.restore();
+
+        ctx.font = '12px "Press Start 2P"';
+        const textWidth = ctx.measureText(playerName).width;
+        const textX = bird.x - textWidth / 2;
+        const textY = bird.y - bird.size / 2 - 10;
+
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        if (isRainbow) {
+            drawRainbowText(playerName, textX, textY);
+        } else {
+            ctx.fillStyle = nameColor;
+            ctx.fillText(playerName, textX, textY);
+        }
+    } // ← ownImg if kapandı
+} // ← gameState if kapandı
+
+// shadow reset
+ctx.shadowColor = 'transparent';
+ctx.shadowBlur = 0;
+ctx.shadowOffsetX = 0;
+ctx.shadowOffsetY = 0;
+
+const myPos = score * 700; // devam eden kod
+                otherPlayers.forEach(other => {
+                    if (other.started) {
+                        const otherPos = (other.score || 0) * 700;
+                        const distance = Math.abs(myPos - otherPos);
+                        if (distance <= 1400) {
+                            const relX = bird.x + (myPos - otherPos);
+                            const otherImg = images[other.birdType];
+                            if (otherImg.complete) {
+                                ctx.save();
+                                ctx.translate(relX, other.y);
+                                ctx.rotate(other.vy * 0.04);
+                                ctx.drawImage(otherImg, -bird.size/2, -bird.size/2, bird.size, bird.size);
+                                ctx.restore();
+                                ctx.font = '12px "Press Start 2P"';
+                                const otherTextWidth = ctx.measureText(other.name).width;
+                                const otherTextX = relX - otherTextWidth / 2;
+                                const otherTextY = other.y - bird.size / 2 - 10;
+                                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                                ctx.shadowBlur = 5;
+                                ctx.shadowOffsetX = 1;
+                                ctx.shadowOffsetY = 1;
+                                if (other.isRainbow) {
+                                    drawRainbowText(other.name, otherTextX, otherTextY);
+                                } else {
+                                    ctx.fillStyle = other.nameColor || 'white';
+                                    ctx.fillText(other.name, otherTextX, otherTextY);
+                                }
+                                ctx.shadowColor = 'transparent';
+                                ctx.shadowBlur = 0;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 0;
+                            }
+                        }
+                    }
+                });
+            }
+            ctx.restore();
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function flap() {
+            if (menuOpen) return;
+            if (gameState === 'ready') {
+                gameState = 'playing';
+                readyMsgEl.style.display = 'none';
+                socket.emit('startGame');
+            }
+            if (gameState === 'playing') {
+                bird.vy = bird.flap;
+                socket.emit('jump', { vy: bird.flap });
+                if (jumpSoundAllowed) {
+                    jumpSound.currentTime = 0;
+                    jumpSound.play().catch(() => {});
+                }
+            }
+        }
+
+        volumeSlider.oninput = () => {
+            volume = volumeSlider.value;
+            gameSound.volume = volume / 100;
+            jumpSound.volume = volume / 100;
+            deathSound.volume = volume / 100;
+            specialSong.volume = volume / 100;
+            volumeValue.textContent = volume + '%';
+            localStorage.setItem('azizinKusuVolume', volume);
+        };
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Escape') {
+                e.preventDefault();
+                if (gameState === 'gameOver') {
+                    restartGame();
+                    gameOverEl.style.display = 'none';
+                    return;
+                }
+                if (settingsMenu.style.display === 'block' && gameState === 'menu') {
+                    settingsMenu.style.display = 'none';
+                    menuEl.style.display = 'block';
+                    lobbySettingsOpen = false;
+                    return;
+                }
+                if (shopEl.style.display === 'block') {
+                    shopEl.style.display = 'none';
+                    menuEl.style.display = 'block';
+                    return;
+                }
+                if (gameState === 'playing') {
+                    if (menuOpen) {
+                        resumeGame();
+                    } else {
+                        openPauseMenu();
+                    }
+                    return;
+                }
+            }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (gameState === 'menu' && menuEl.style.display === 'block') {
+                    startGame();
+                } else if (gameState === 'gameOver') {
+                    restartGame();
+                } else {
+                    flap();
+                }
+            }
+        });
+
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            flap();
+        });
+
+        canvas.addEventListener('mousedown', e => {
+            if (e.button === 0) flap();
+        });
+
+        document.addEventListener('click', () => {
+            jumpSound.play().catch(() => {});
+            jumpSound.pause();
+            jumpSound.currentTime = 0;
+        }, { once: true });
+
+        document.getElementById('resumeBtn').onclick = resumeGame;
+        document.getElementById('settingsBtn').onclick = () => {
+            pauseMenu.style.display = 'none';
+            settingsMenu.style.display = 'block';
+        };
+        document.getElementById('mainMenuBtn').onclick = goToMainMenu;
+        playerNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+        document.getElementById('startBtn').onclick = startGame;
+        document.getElementById('restartBtn').onclick = restartGame;
+        lobbyShopBtn.onclick = () => {
+            if (shopEl.style.display === 'block') {
+                shopEl.style.display = 'none';
+                menuEl.style.display = 'block';
+            } else {
+                menuEl.style.display = 'none';
+                shopEl.style.display = 'block';
+                updateGoldDisplay();
+            }
+        };
+        lobbySettings.onclick = () => {
+            if (lobbySettingsOpen) {
+                settingsMenu.style.display = 'none';
+                menuEl.style.display = 'block';
+                lobbySettingsOpen = false;
+            } else {
+                menuEl.style.display = 'none';
+                shopEl.style.display = 'none';
+                pauseMenu.style.display = 'none';
+                settingsMenu.style.display = 'block';
+                lobbySettingsOpen = true;
+            }
+            goldDisplay.style.display = 'block';
+        };
+        document.getElementById('backBtn').onclick = () => {
+            shopEl.style.display = 'none';
+            menuEl.style.display = 'block';
+        };
+        settingsBackBtn.onclick = () => {
+            if (gameState === 'playing') {
+                settingsMenu.style.display = 'none';
+                pauseMenu.style.display = 'block';
+            } else {
+                settingsMenu.style.display = 'none';
+                menuEl.style.display = 'block';
+                lobbySettingsOpen = false;
+            }
+        };
+        buyDncBtn.onclick = unlockDNC;
+        buyLugerBtn.onclick = unlockLuger;
+        buyAziz2Btn.onclick = unlockAziz2;
+        buyRainbowBtn.onclick = unlockRainbow;
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.onclick = () => setDifficulty(btn.dataset.diff);
+        });
+        document.getElementById('bird0').onclick = () => selectBird(0);
+        document.getElementById('bird1').onclick = () => selectBird(1);
+        document.querySelectorAll('.color-btn:not(#rainbowBtn)').forEach(btn => {
+            btn.onclick = () => selectNameColor(btn.dataset.color);
+        });
+        document.getElementById('rainbowBtn').onclick = () => {
+            if (rainbowUnlocked) selectRainbow();
+            else unlockRainbow();
+        };
+
+        if (dncUnlocked) {
+            addDncToMenu();
+            buyDncBtn.textContent = 'SATIN ALINDI!';
+            buyDncBtn.disabled = true;
+        }
+        if (lugerUnlocked) {
+            addLugerToMenu();
+            buyLugerBtn.textContent = 'SATIN ALINDI!';
+            buyLugerBtn.disabled = true;
+        }
+        if (aziz2Unlocked) {
+            addAziz2ToMenu();
+            buyAziz2Btn.textContent = 'SATIN ALINDI!';
+            buyAziz2Btn.disabled = true;
+        }
+        if (rainbowUnlocked) {
+            buyRainbowBtn.textContent = 'SATIN ALINDI!';
+            buyRainbowBtn.disabled = true;
+            document.getElementById('rainbowPrice').style.display = 'none';
+        }
+        if (isRainbow) {
+            document.getElementById('rainbowBtn').classList.add('selected');
+        } else {
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                if (btn.dataset.color === nameColor) btn.classList.add('selected');
+            });
+        }
+
+        updateGoldDisplay();
+        goldDisplay.style.display = 'block';
+        lobbyShopBtn.style.display = 'block';
+        lobbySettings.style.display = 'block';
+        loadLeaderboard();
+        setDifficulty(currentDifficulty);
+        selectBird(selectedBird);
+
+        gameState = 'menu';
+        gameOverEl.style.display = 'none';
+        readyMsgEl.style.display = 'none';
+        pauseMenu.style.display = 'none';
+        settingsMenu.style.display = 'none';
+
+        let intervalId = null;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && gameState === 'playing') {
+                intervalId = setInterval(() => {
+                    update();
+                }, 16);
+            } else if (document.visibilityState === 'visible' && intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        });
+
+        function handleResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if (window.innerWidth > window.innerHeight) {
+                canvas.style.display = 'block';
+                rotateMsg.style.display = 'none';
+            } else {
+                canvas.style.display = 'none';
+                rotateMsg.style.display = 'block';
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        handleResize();
+
+        socket.on('connect', () => {
+            console.log('Bağlandı!');
+        });
+        socket.on('disconnect', () => {
+            console.log('Bağlantı koptu');
+        });
+        socket.on('players', (players) => {
+            otherPlayers = players.filter(p => p.id !== socket.id);
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>

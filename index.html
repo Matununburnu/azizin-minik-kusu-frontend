@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Azizin Minik Kuşu: Online</title>
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="favicon.ico">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
         body {
             margin: 0;
             padding: 0;
@@ -18,6 +19,7 @@
             font-family: 'Press Start 2P', cursive;
             overflow: hidden;
             user-select: none;
+
         }
         canvas {
             border: 5px solid #333;
@@ -26,20 +28,35 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1;
+            z-index: 2;
             width: 100%;
             height: 100%;
         }
-        #bgVideo, #nightBg, #bidaVideo, #banVideo {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            display: none;
-        }
+/* Skor 5'teki arkaplan videosu: canvas'ın ARKASINDA olsun */
+#bgVideo, #nightBg, #bidaVideo, #banVideo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;          /* canvas 2 olduğu için oyun üstte görünür */
+    display: none;
+    pointer-events: none;
+}
+
+/* Skor 20 korku videosu da ARKA PLAN olsun (canvas'ın arkasında) */
+#korkuVideo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;          /* canvas 2 olduğu için oyun görünür */
+    display: none;
+    pointer-events: none;
+}
         #ui {
             position: absolute;
             top: 40px;
@@ -55,7 +72,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            font-size: 28px;
+            font-size: 20px;
             color: #ffd700;
             background: rgba(0,0,0,0.6);
             padding: 10px 20px;
@@ -64,7 +81,11 @@
             z-index: 10;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0px;
+        }
+        #goldDisplay img {
+            width: 25px;
+            height: 25px;
         }
         #leaderboard {
             position: absolute;
@@ -143,7 +164,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #0044aa, #0088ff);
+            background: linear-gradient(145deg, rgba(0,68,170,1) 0%, rgba(0,136,255,1) 100%);
             padding: 60px;
             border-radius: 30px;
             text-align: center;
@@ -154,41 +175,58 @@
             border: 6px solid #000;
             display: none;
             color: white;
+            animation: slideDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         #settingsMenu h2 {
-            font-size: 50px;
+            font-size: 52px !important;
             margin: 0 0 40px;
-            color: #ffffff;
+            color: #ff0000;
             text-shadow: 4px 4px 0 #000;
+            animation: neonGlow 2s ease-in-out infinite alternate;
         }
         #settingsMenu .volume-label {
             font-size: 36px;
             margin: 30px 0 15px;
             text-shadow: 3px 3px 0 #000;
         }
-        #volumeValue {
+        #volumeValue, #effectsVolumeValue {
             font-size: 40px;
             color: #ffff00;
             text-shadow: 4px 4px 0 #000;
             margin: 15px 0;
         }
-        #volumeSlider {
+        #volumeSlider, #effectsVolumeSlider {
             width: 70%;
             height: 30px;
             margin: 30px 0;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            border-radius: 15px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        #volumeSlider::-webkit-slider-thumb, #effectsVolumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 40px;
+            height: 40px;
+            background: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ffd700;
         }
         #settingsMenu #settingsBackBtn {
             font-size: 48px;
             padding: 30px 80px;
             border: 6px solid #000;
             border-radius: 20px;
-            background: linear-gradient(45deg, #00ff00, #008800);
+            background: linear-gradient(45deg, #ff00ff, #8800ff);
             color: white;
             cursor: pointer;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
             transition: transform 0.2s;
             text-shadow: 4px 4px 0 #000;
             margin: 20px;
+            font-family: 'Roboto', sans-serif;
         }
         #settingsMenu #settingsBackBtn:hover {
             transform: scale(1.05);
@@ -200,12 +238,12 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(45deg, #ffff00, #ffaa00);
-            padding: 50px;
+            padding: 60px;
             border-radius: 30px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-            min-width: 600px;
-            max-width: 800px;
+            min-width: 800px;
+            max-width: 1000px;
             z-index: 20;
             border: 6px solid #000;
             display: block;
@@ -216,12 +254,12 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(45deg, #ffff00, #ffaa00);
-            padding: 50px;
+            padding: 30px;
             border-radius: 30px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-            min-width: 600px;
-            max-width: 800px;
+            min-width: 500px;
+            max-width: 700px;
             z-index: 20;
             border: 6px solid #000;
             display: none;
@@ -229,8 +267,14 @@
         #gameOver h2 {
             font-size: 60px;
             color: #ff4444;
-            text-shadow: 6px 6px 0 #000;
-            margin-bottom: 40px;
+            text-shadow: 4px 4px 0 #000, 0 0 20px #ff0000, 0 0 30px #ff0000;
+            margin-bottom: 30px;
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            animation: neonGlow 2s ease-in-out infinite alternate;
         }
         #currentScore, #highScore {
             font-size: 45px;
@@ -253,39 +297,78 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #0044aa, #0088ff);
+            background: linear-gradient(145deg, rgba(0,68,170,1) 0%, rgba(0,136,255,1) 100%);
             padding: 30px;
             border-radius: 30px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-            min-width: 400px;
-            max-width: 500px;
+            min-width: 600px;
+            max-width: 800px;
             max-height: 80vh;
             overflow-y: auto;
             z-index: 20;
             border: 6px solid #000;
             display: none;
             color: white;
+            scroll-behavior: smooth;
+            animation: slideDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         #shop h2 {
-            font-size: 40px;
+            font-size: 52px !important;
             margin: 0 0 30px;
             color: #ff0000;
             text-shadow: 4px 4px 0 #000;
+            font-family: 'Roboto', sans-serif;
+            animation: neonGlow 2s ease-in-out infinite alternate;
+        }
+        #shopTopBackBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            padding: 10px 20px;
+            border: 4px solid #000;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,20,147,0.6);
+            transition: transform 0.2s;
+            text-shadow: 2px 2px 0 #000;
+            font-family: 'Roboto', sans-serif;
+        }
+        #shopTopBackBtn:hover {
+            transform: scale(1.05);
         }
         .shop-items {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
-            margin: 20px 0;
+            display: flex !important;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 45px;
+            padding: 40px 20px;
+            max-width: 820px;
+            margin: 0 auto;
         }
         .shop-item {
             text-align: center;
-            width: 100%;
-            max-width: 320px;
+            width: 220px;
+            padding: 25px 20px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.15), rgba(0,0,0,0.4));
+            backdrop-filter: blur(12px);
+            border: 4px solid rgba(255,255,255,0.35);
+            border-radius: 25px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
+        .shop-item::before {
+            content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transition: 0.6s;
+        }
+        .shop-item:hover::before { left: 150%; }
+        .shop-item:hover { transform: translateY(-12px); border-color: #00ffff; }
         .shop-item.locked .bird-select button::before {
             content: "🔒";
             position: absolute;
@@ -297,22 +380,23 @@
             text-shadow: 0 0 10px #000;
             z-index: 5;
             pointer-events: none;
+            opacity: 0.5;
         }
         .shop-item h3 {
-            font-size: 18px;
-            margin: 10px 0;
-            color: #ffff00;
-            text-shadow: 3px 3px #000;
+            font-size: 21px; margin: 0 0 22px 0; color: #fff; text-shadow: 3px 3px 0 #000, 0 0 15px #00ffff;
+            font-family: 'Roboto', sans-serif; letter-spacing: 1px;
         }
         .shop-item .bird-select button {
-            width: 140px;
-            height: 140px;
-            border: 4px solid #000;
-            border-radius: 20px;
-            background: no-repeat center/cover;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            width: 180px; height: 180px; border: 6px solid rgba(255,255,255,0.9);
+            border-radius: 22px; background: no-repeat center/contain; cursor: pointer;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7), inset 0 0 25px rgba(255,255,255,0.15);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .shop-item:hover .bird-select button {
+            transform: scale(1.22) rotate(4deg);
+            border-color: #00ffff;
+            box-shadow: 0 30px 70px rgba(0,255,255,0.7), 0 0 45px rgba(0,255,255,0.9);
+            filter: brightness(1.35) drop-shadow(0 0 25px #00ffff);
         }
         .price-tag {
             font-size: 18px;
@@ -333,10 +417,15 @@
             color: white;
             border: none;
             cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            transition: transform 0.2s;
         }
         .buy-btn:disabled {
             background: gray;
             cursor: not-allowed;
+        }
+        .buy-btn:hover {
+            transform: scale(1.05);
         }
         #colorSection {
             margin-top: 30px;
@@ -347,6 +436,7 @@
             font-size: 22px;
             color: #ffff00;
             text-shadow: 3px 3px #000;
+            font-family: 'Roboto', sans-serif;
         }
         .color-options {
             display: flex;
@@ -389,7 +479,7 @@
             font-size: 32px;
             padding: 20px;
             width: 500px;
-            margin: 30px 0;
+            margin: 0 0 50px 0;
             text-align: center;
             border: 6px solid #000;
             border-radius: 15px;
@@ -401,15 +491,23 @@
             gap: 50px;
             margin: 40px 0;
         }
+        #characterMenu .bird-select {
+            flex-wrap: wrap;
+            gap: 20px;
+        }
         .bird-select button {
             width: 220px;
             height: 220px;
             border: 6px solid #000;
             border-radius: 25px;
-            background: no-repeat center/cover;
+            background: no-repeat center/contain;
             cursor: pointer;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
             transition: transform 0.3s;
+        }
+        #characterMenu .bird-select button {
+            width: 150px;
+            height: 150px;
         }
         .bird-select button:hover, .bird-select button.selected {
             transform: scale(1.15);
@@ -418,30 +516,28 @@
         #bird1 {
             background-color: #000 !important;
         }
-        .difficulty-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin: 40px 0;
-        }
-        .diff-btn {
-            font-size: 28px;
-            padding: 15px 45px;
+        #startBtn, #restartBtn, #backBtn {
+            font-size: 48px;
+            padding: 30px 80px;
             border: 6px solid #000;
             border-radius: 20px;
+            background: linear-gradient(45deg, #ff00ff, #8800ff);
+            color: white;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            transition: all 0.3s;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
             text-shadow: 4px 4px 0 #000;
-            min-width: 140px;
-            text-align: center;
+            margin: 20px;
+            font-family: 'Roboto', sans-serif;
         }
-        .diff-btn.easy { background: linear-gradient(45deg, #00ff88, #0088ff); color: white; }
-        .diff-btn.medium { background: linear-gradient(45deg, #ffff00, #ff8800); color: black; }
-        .diff-btn.hard { background: linear-gradient(45deg, #ff0088, #8800ff); color: white; }
-        .diff-btn.selected { transform: scale(1.15); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .diff-btn:hover { transform: scale(1.1); cursor: pointer; }
-        #startBtn, #restartBtn, #backBtn {
+        #startBtn {
+            margin-top: -50px;
+        }
+        #startBtn:hover, #restartBtn:hover, #backBtn:hover {
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+        #characterSelectBtn {
             font-size: 48px;
             padding: 30px 80px;
             border: 6px solid #000;
@@ -453,16 +549,22 @@
             transition: transform 0.2s;
             text-shadow: 4px 4px 0 #000;
             margin: 20px;
+            font-family: 'Roboto', sans-serif;
         }
-        #startBtn:hover, #restartBtn:hover, #backBtn:hover {
+        #characterSelectBtn:hover {
             transform: scale(1.05);
             cursor: pointer;
         }
         #lobbyShopBtn, #lobbySettingsBtn {
             position: absolute;
             bottom: 30px;
-            font-size: 32px;
-            padding: 15px 50px;
+            font-size: clamp(18px, 3.2vw, 30px);
+            width: auto;
+            min-width: 200px;
+            max-width: 45vw;
+            height: auto;
+            min-height: 70px;
+            padding: 14px 26px;
             border: 6px solid #000;
             border-radius: 20px;
             cursor: pointer;
@@ -470,6 +572,14 @@
             z-index: 30;
             text-shadow: 4px 4px 0 #000;
             transition: transform 0.2s;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+            text-transform: uppercase;
         }
         #lobbyShopBtn {
             left: 30px;
@@ -481,7 +591,26 @@
             background: linear-gradient(45deg, #00ffff, #0088ff);
             color: white;
         }
-        #lobbyShopBtn:hover, #lobbySettingsBtn:hover { transform: scale(1.1); cursor: pointer; }
+        #lobbyShopBtn:hover, #lobbySettingsBtn:hover {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+        #lobbyShopBtn::after {
+            content: "YENİ";
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: red;
+            font-size: 16px;
+            text-shadow: 2px 2px 0 #000;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
         #rotateMsg {
             position: absolute;
             top: 50%;
@@ -510,6 +639,10 @@
                 font-size: 20px;
                 padding: 5px 10px;
             }
+            #goldDisplay img {
+                width: 22px;
+                height: 22px;
+            }
             #leaderboard {
                 font-size: 12px;
                 max-width: 200px;
@@ -528,9 +661,6 @@
                 min-width: 90vw;
                 padding: 20px;
             }
-            #pauseMenu h2, #settingsMenu h2, #menu h1, #shop h2, #gameOver h2 {
-                font-size: 40px;
-            }
             #pauseMenu button, #startBtn, #restartBtn, #backBtn {
                 font-size: 30px;
                 padding: 20px 60px;
@@ -544,10 +674,6 @@
                 width: 150px;
                 height: 150px;
             }
-            .diff-btn {
-                font-size: 20px;
-                padding: 10px 30px;
-            }
             #volumeSlider {
                 width: 60%;
             }
@@ -558,15 +684,24 @@
                 font-size: 20px;
                 padding: 10px 30px;
             }
-        }
-        @media (orientation: portrait) and (max-width: 768px) {
-            #rotateMsg {
-                display: block;
+            #lobbyShopBtn, #lobbySettingsBtn {
+                white-space: normal;
+                line-height: 1.1;
+                max-width: 48vw;
+                min-width: 160px;
+                padding: 12px 18px;
+                min-height: 64px;
             }
-            canvas, #ui, #goldDisplay, #leaderboard, #readyMsg, #pauseMenu, #settingsMenu, #menu, #shop, #gameOver, #bgVideo, #nightBg {
-                display: none;
-            }
         }
+@media (orientation: portrait) and (max-width: 768px) {
+    #rotateMsg { display: block; }
+
+    canvas, #ui, #goldDisplay, #leaderboard, #readyMsg,
+    #pauseMenu, #settingsMenu, #menu, #shop, #gameOver,
+    #bgVideo, #nightBg, #korkuVideo, #bidaVideo, #banVideo {
+        display: none;
+    }
+}
         @media (orientation: landscape) and (max-width: 768px) {
             #rotateMsg {
                 display: none;
@@ -575,35 +710,136 @@
                 display: block;
             }
         }
-        /* Yeni ek: Ana menü butonları için hover'da cursor pointer */
-        #menu button:hover,
-        #menu .diff-btn:hover,
-        #menu .bird-select button:hover,
-        #startBtn:hover {
-            cursor: pointer;
+        #characterMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, rgba(0,68,170,1) 0%, rgba(0,136,255,1) 100%);
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            min-width: 600px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 20;
+            border: 6px solid #000;
+            display: none;
+            color: white;
+            scroll-behavior: smooth;
+            animation: slideDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
+        #characterMenu h2 {
+            font-size: 52px !important;
+            margin: 0 0 30px;
+            color: #ff0000;
+            text-shadow: 4px 4px 0 #000;
+            animation: neonGlow 2s ease-in-out infinite alternate;
+        }
+        #characterTopBackBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            padding: 10px 20px;
+            border: 4px solid #000;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,20,147,0.6);
+            transition: transform 0.2s;
+            text-shadow: 2px 2px 0 #000;
+            font-family: 'Roboto', sans-serif;
+        }
+        #characterTopBackBtn:hover {
+            transform: scale(1.05);
+        }
+        #characterMenu .shop-item.selected {
+            background: linear-gradient(145deg, rgba(255,215,0,0.35), rgba(255,255,0,0.25)) !important;
+            border-color: #ffd700 !important;
+            box-shadow: 0 0 55px #ffd700, 0 25px 70px rgba(255,215,0,0.5), inset 0 0 35px rgba(255,255,0,0.3);
+            transform: scale(1.09);
+        }
+        #characterMenu .bird-select button.selected {
+            transform: scale(1.28) !important;
+            border: 7px solid #ffd700 !important;
+            box-shadow: 0 0 70px #ffd700, 0 35px 90px rgba(255,215,0,0.7), inset 0 0 50px rgba(255,255,0,0.5) !important;
+            animation: goldenPulse 1.4s infinite;
+        }
+        #characterBirds {
+            display: flex !important;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 45px;
+            padding: 40px 20px;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+        #characterBackBtn {
+            font-size: 44px !important;
+            padding: 28px 80px !important;
+            margin-top: 35px !important;
+            background: linear-gradient(45deg, #ff1493, #ff69b4) !important;
+            border: 6px solid #000;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 20px 60px rgba(255,20,147,0.6) !important;
+            transition: transform 0.2s;
+            text-shadow: 4px 4px 0 #000;
+            font-family: 'Roboto', sans-serif;
+        }
+        #characterBackBtn:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 25px 75px rgba(255,20,147,0.8) !important;
+        }
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes neonGlow {
+            0% { text-shadow: 4px 4px 0 #000, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+            100% { text-shadow: 4px 4px 0 #000, 0 0 40px #ff00ff, 0 0 60px #ff00ff, 0 0 80px #ff00ff; }
+        }
+        @keyframes goldenPulse {
+            0%, 100% { box-shadow: 0 0 70px #ffd700, 0 35px 90px rgba(255,215,0,0.7); }
+            50% { box-shadow: 0 0 100px #ffd700, 0 45px 110px rgba(255,215,0,0.9); }
+        }
+html, body, * {
+    cursor: url("assets/images/mouse.png?v=2") 0 0, auto !important;
+}
+
+#gameCanvas {
+    cursor: url("assets/images/mouse.png?v=2") 0 0, auto !important;
+}
+
+#gameCanvas {
+    cursor: url("/assets/images/mouse.png?v=2") 0 0, auto !important;
+}
     </style>
 </head>
 <body>
     <div id="rotateMsg">Lütfen cihazınızı yatay tutun!</div>
     <audio id="gameSound"><source src="assets/sounds/ses.m4a" type="audio/mp4"></audio>
     <audio id="jumpSound" preload="auto"><source src="assets/sounds/jump.mp3" type="audio/mpeg"></audio>
-    <audio id="specialSong">
-        <source src="assets/sounds/sarki.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="specialSong"><source src="assets/sounds/sarki.mp3" type="audio/mpeg"></audio>
     <audio id="deathSound"><source src="assets/sounds/death.mp3" type="audio/mpeg"></audio>
-    <video id="bgVideo" loop muted playsinline><source src="assets/videos/koltuk.mp4" type="video/mp4"></video>
-    <video id="bidaVideo" loop muted playsinline><source src="assets/videos/bida.mp4" type="video/mp4"></video>
-    <video id="banVideo" loop muted playsinline><source src="assets/videos/ban.mp4" type="video/mp4"></video>
-    <img id="nightBg" src="assets/images/arka_plan2.png">
+    <video id="bgVideo" muted playsinline><source src="assets/videos/koltuk.mp4" type="video/mp4"></video>
+    <video id="bidaVideo" playsinline><source src="assets/videos/bida.mp4" type="video/mp4"></video>
+    <video id="banVideo" loop playsinline><source src="assets/videos/ban.mp4" type="video/mp4"></video>
+    <video id="korkuVideo" playsinline><source src="assets/videos/korku.mp4" type="video/mp4"></video>
+    <img id="nightBg" src="assets/images/arka_plan.png">
     <canvas id="gameCanvas"></canvas>
     <div id="ui">0</div>
-    <div id="goldDisplay">ALTIN: 0 🪙</div>
+    <div id="goldDisplay">ALTIN: 0 <img src="assets/images/altin.png" alt="Altın"></div>
     <div id="leaderboard">
         <h3>LİDER TABLOSU</h3>
         <div id="leaderboardList">Henüz skor yok...</div>
     </div>
-    <div id="readyMsg">SPACE veya TIKLA ile Zıpla ve Başla!</div>
+    <div id="readyMsg">SPACE veya TIKLAYARAK Zıpla ve Başla!</div>
     <div id="pauseMenu">
         <button id="resumeBtn">OYUNA DÖN</button>
         <button id="settingsBtn">AYARLAR</button>
@@ -611,101 +847,112 @@
     </div>
     <div id="settingsMenu">
         <h2>AYARLAR</h2>
-        <div class="volume-label">SES SEVİYESİ</div>
+        <div class="volume-label">ANA SES</div>
         <div id="volumeValue">100%</div>
         <input type="range" id="volumeSlider" min="0" max="100" value="100">
+        <div class="volume-label">SES EFEKTLERİ</div>
+        <div id="effectsVolumeValue">100%</div>
+        <input type="range" id="effectsVolumeSlider" min="0" max="100" value="100">
         <button id="settingsBackBtn">GERİ</button>
     </div>
     <button id="lobbyShopBtn">MAĞAZA</button>
     <button id="lobbySettingsBtn">AYARLAR ⚙️</button>
     <div id="menu">
         <input type="text" id="playerNameInput" placeholder="İsmini Gir" maxlength="12">
-        <div class="bird-select" id="menuBirds">
-            <button id="bird0" style="background-image:url('assets/images/dogman.png');"></button>
-            <button id="bird1" style="background-image:url('assets/images/pepe.png'); background-color:#000;"></button>
-        </div>
-        <div class="difficulty-buttons">
-            <div class="diff-btn easy" data-diff="easy">KOLAY</div>
-            <div class="diff-btn medium selected" data-diff="medium">ORTA</div>
-            <div class="diff-btn hard" data-diff="hard">ZOR</div>
-        </div>
         <button id="startBtn">OYUNA BAŞLA</button>
+        <button id="characterSelectBtn">KARAKTER SEÇ</button>
     </div>
-<div id="shop">
-    <h2>MAĞAZA</h2>
-    <div class="shop-items">
-        <div class="shop-item" id="item-dnc">
-            <h3>ÖZEL BİREY DNC</h3>
-            <div class="bird-select">
-                <button style="background-image:url('assets/images/dnc.png');"></button>
-            </div>
-            <div class="price-tag"><span>30</span> ALTIN 🪙</div>
-            <button id="buyDncBtn" class="buy-btn">SATIN AL</button>
-        </div>
-        <div class="shop-item" id="item-luger">
-            <h3>ŞAŞKIN LUGER</h3>
-            <div class="bird-select">
-                <button style="background-image:url('assets/images/luger.png');"></button>
-            </div>
-            <div class="price-tag"><span>50</span> ALTIN 🪙</div>
-            <button id="buyLugerBtn" class="buy-btn">SATIN AL</button>
-        </div>
-        <div class="shop-item" id="item-aziz2">
-            <h3>YARRATIK AZİZ</h3>
-            <div class="bird-select">
-                <button style="background-image:url('assets/images/aziz2.png');"></button>
-            </div>
-            <div class="price-tag"><span>100</span> ALTIN 🪙</div>
-            <button id="buyAziz2Btn" class="buy-btn">SATIN AL</button>
-        </div>
-        <div class="shop-item" id="item-sarhos">
-            <h3>SARHOŞ MAYMUN</h3>
-            <div class="bird-select">
-                <button style="background-image:url('assets/images/sarhos.png');"></button>
-            </div>
-            <div class="price-tag"><span>150</span> ALTIN 🪙</div>
-            <button id="buySarhosBtn" class="buy-btn">SATIN AL</button>
-        </div>
-        <div class="shop-item" id="item-ayak">
-            <h3>36 BUJUK AYAK</h3>
-            <div class="bird-select">
-                <button style="background-image:url('assets/images/ayak.png');"></button>
-            </div>
-            <div class="price-tag"><span>250</span> ALTIN 🪙</div>
-            <button id="buyAyakBtn" class="buy-btn">SATIN AL</button>
-        </div>
+    <!-- ŞIK KARAKTER MENÜSÜ -->
+    <div id="characterMenu" style="display:none;">
+        <button id="characterTopBackBtn">GERİ</button>
+        <h2>KARAKTER SEÇ</h2>
+        <div class="shop-items" id="characterBirds"></div>
+        <button id="characterBackBtn">GERİ</button>
     </div>
-    <div id="colorSection">
-        <h3>İSİM ETİKETİ RENGİ</h3>
-        <div class="color-options">
-            <button class="color-btn" style="background-color: white;" data-color="white"></button>
-            <button class="color-btn" style="background-color: #ff0000;" data-color="red"></button>
-            <button class="color-btn" style="background-color: #0000ff;" data-color="blue"></button>
-            <button class="color-btn" style="background-color: #00ff00;" data-color="green"></button>
-            <button class="color-btn" style="background-color: #ffff00;" data-color="yellow"></button>
-            <button class="color-btn" style="background-color: #ff00ff;" data-color="pink"></button>
-            <button class="color-btn" style="background-color: #ffa500;" data-color="orange"></button>
-            <button class="color-btn" style="background-color: #800080;" data-color="purple"></button>
-            <div id="rainbowItem">
-                <button id="rainbowBtn" class="color-btn"></button>
-                <div class="price-tag" id="rainbowPrice"><span>500</span> ALTIN 🪙</div>
-                <button id="buyRainbowBtn" class="buy-btn">SATIN AL</button>
+    <div id="shop">
+        <button id="shopTopBackBtn">GERİ</button>
+        <h2>MAĞAZA</h2>
+        <div class="shop-items">
+            <div class="shop-item" id="item-dnc">
+                <h3>ÖZEL BİREY DNC</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/dnc.png');"></button>
+                </div>
+                <div class="price-tag"><span>30 Altın</span></div>
+                <button id="buyDncBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item" id="item-luger">
+                <h3>ŞAŞKIN LUGER</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/luger.png');"></button>
+                </div>
+                <div class="price-tag"><span>50 Altın</span></div>
+                <button id="buyLugerBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item" id="item-aziz2">
+                <h3>YARRATIK AZİZ</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/aziz2.png');"></button>
+                </div>
+                <div class="price-tag"><span>100 Altın</span></div>
+                <button id="buyAziz2Btn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item" id="item-sarhos">
+                <h3>SARHOŞ MAYMUN</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/sarhos.png');"></button>
+                </div>
+                <div class="price-tag"><span>150 Altın</span></div>
+                <button id="buySarhosBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item" id="item-ayak">
+                <h3>36 BUJUK AYAK</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/ayak.png');"></button>
+                </div>
+                <div class="price-tag"><span>250 Altın</span></div>
+                <button id="buyAyakBtn" class="buy-btn">SATIN AL</button>
+            </div>
+            <div class="shop-item" id="item-revanch">
+                <h3>REVANCH</h3>
+                <div class="bird-select">
+                    <button style="background-image:url('assets/images/revanch.png');"></button>
+                </div>
+                <div class="price-tag"><span>300 Altın</span></div>
+                <button id="buyRevanchBtn" class="buy-btn">SATIN AL</button>
             </div>
         </div>
+        <div id="colorSection">
+            <h3>İSİM ETİKETİ RENGİ</h3>
+            <div class="color-options">
+                <button class="color-btn" style="background-color: white;" data-color="white"></button>
+                <button class="color-btn" style="background-color: #ff0000;" data-color="red"></button>
+                <button class="color-btn" style="background-color: #0000ff;" data-color="blue"></button>
+                <button class="color-btn" style="background-color: #00ff00;" data-color="green"></button>
+                <button class="color-btn" style="background-color: #ffff00;" data-color="yellow"></button>
+                <button class="color-btn" style="background-color: #ff00ff;" data-color="pink"></button>
+                <button class="color-btn" style="background-color: #ffa500;" data-color="orange"></button>
+                <button class="color-btn" style="background-color: #800080;" data-color="purple"></button>
+                <div id="rainbowItem">
+                    <button id="rainbowBtn" class="color-btn"></button>
+                    <div class="price-tag" id="rainbowPrice"><span>500 Altın</span></div>
+                    <button id="buyRainbowBtn" class="buy-btn">SATIN AL</button>
+                </div>
+            </div>
+        </div>
+        <button id="backBtn">GERİ</button>
     </div>
-    <button id="backBtn">GERİ</button>
-</div>
-<div id="gameOver" style="display:none;">
-    <h2>OYUN BİTTİ!</h2>
-    <div id="currentScore">SKOR: 0</div>
-    <div id="highScore">EN YÜKSEK: 0</div>
-    <button id="restartBtn">YENİDEN OYNA</button>
-</div>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script>
+    <div id="gameOver" style="display:none;">
+        <h2>ÖLDÜN!</h2>
+        <div id="currentScore">SKOR: 0</div>
+        <div id="highScore">EN YÜKSEK: 0</div>
+        <button id="restartBtn">YENİDEN OYNA</button>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
 const socket = io("https://azizin-minik-kusu-2.onrender.com", { transports: ["websocket"] });
 let deviceId = localStorage.getItem("deviceId");
 if (!deviceId) {
@@ -752,10 +999,10 @@ const highScoreEl = document.getElementById('highScore');
 const leaderboardList = document.getElementById('leaderboardList');
 const playerNameInput = document.getElementById('playerNameInput');
 const goldDisplay = document.getElementById('goldDisplay');
-const menuBirds = document.getElementById('menuBirds');
 const bgVideo = document.getElementById('bgVideo');
 const bidaVideo = document.getElementById('bidaVideo');
 const banVideo = document.getElementById('banVideo');
+const korkuVideo = document.getElementById('korkuVideo');
 const nightBg = document.getElementById('nightBg');
 const lobbyShopBtn = document.getElementById('lobbyShopBtn');
 const lobbySettings = document.getElementById('lobbySettingsBtn');
@@ -765,20 +1012,27 @@ const specialSong = document.getElementById("specialSong");
 const deathSound = document.getElementById('deathSound');
 const volumeSlider = document.getElementById('volumeSlider');
 const volumeValue = document.getElementById('volumeValue');
+const effectsVolumeSlider = document.getElementById('effectsVolumeSlider');
+const effectsVolumeValue = document.getElementById('effectsVolumeValue');
 const buyDncBtn = document.getElementById('buyDncBtn');
 const buyLugerBtn = document.getElementById('buyLugerBtn');
 const buyAziz2Btn = document.getElementById('buyAziz2Btn');
 const buySarhosBtn = document.getElementById('buySarhosBtn');
 const buyAyakBtn = document.getElementById('buyAyakBtn');
+const buyRevanchBtn = document.getElementById('buyRevanchBtn');
 const buyRainbowBtn = document.getElementById('buyRainbowBtn');
 const rotateMsg = document.getElementById('rotateMsg');
 const settingsBackBtn = document.getElementById('settingsBackBtn');
+const characterMenu = document.getElementById('characterMenu');
+const characterBackBtn = document.getElementById('characterBackBtn');
+const characterTopBackBtn = document.getElementById('characterTopBackBtn');
+const shopTopBackBtn = document.getElementById('shopTopBackBtn');
+const characterSelectBtn = document.getElementById('characterSelectBtn');
 const designWidth = 1920;
 const designHeight = 1080;
 let gameState = 'menu';
 let otherPlayers = [];
 let score = 0;
-let gameOver = false;
 let specialSongPlayed = false;
 let playerName = localStorage.getItem('azizinKusuPlayerName') || '';
 let gold = parseInt(localStorage.getItem('azizinKusuGold')) || 0;
@@ -787,27 +1041,29 @@ let lugerUnlocked = localStorage.getItem('lugerUnlocked') === 'true';
 let aziz2Unlocked = localStorage.getItem('aziz2Unlocked') === 'true';
 let sarhosUnlocked = localStorage.getItem('sarhosUnlocked') === 'true';
 let ayakUnlocked = localStorage.getItem('ayakUnlocked') === 'true';
+let revanchUnlocked = localStorage.getItem('revanchUnlocked') === 'true';
 let rainbowUnlocked = localStorage.getItem('rainbowUnlocked') === 'true';
 let nameColor = localStorage.getItem('nameColor') || 'white';
 let isRainbow = localStorage.getItem('isRainbow') === 'true';
-let currentDifficulty = localStorage.getItem('azizinKusuDifficulty') || 'medium';
+let currentDifficulty = 'hard';
 let highScore = parseInt(localStorage.getItem('azizinKusuHighScore')) || 0;
 let musicPlayedThisGame = false;
 let volume = parseInt(localStorage.getItem('azizinKusuVolume')) || 100;
-let selectedBird = parseInt(localStorage.getItem('azizinKusuSelectedBird')) || 0;
+let effectsVolume = parseInt(localStorage.getItem('azizinKusuEffectsVolume')) || 100;
+let selectedBird = parseInt(localStorage.getItem('azizinKusuSelectedBird')) || 1;
 let lobbySettingsOpen = false;
 let deathSoundPlayed = false;
 let jumpSoundAllowed = true;
-let videoPlayed = false;
-let bidaVideoMode = false;
-let banVideoMode = false;
-const backgroundDay = new Image(); backgroundDay.src = 'assets/images/arka_plan.png';
-const backgroundSpecial = new Image(); backgroundSpecial.src = "assets/images/arka_plan2.png";
-const backgroundAziz = new Image(); backgroundAziz.src = 'assets/images/aziz.png';
 let videoMode = false;
 let specialBgMode = false;
 let nightMode = false;
 let azizMode = false;
+let korkuPlayedThisRun = false;
+let bidaVideoMode = false;
+let banVideoMode = false;
+let bidaPlayedThisRun = false;
+const backgroundDay = new Image(); backgroundDay.src = 'assets/images/arka_plan.png';
+const backgroundSpecial = new Image(); backgroundSpecial.src = "assets/images/arka_plan2.png";
 const dogmanImg = new Image(); dogmanImg.src = 'assets/images/dogman.png';
 const pepeImg = new Image(); pepeImg.src = 'assets/images/pepe.png';
 const dncImg = new Image(); dncImg.src = 'assets/images/dnc.png';
@@ -815,7 +1071,8 @@ const lugerImg = new Image(); lugerImg.src = 'assets/images/luger.png';
 const aziz2Img = new Image(); aziz2Img.src = 'assets/images/aziz2.png';
 const sarhosImg = new Image(); sarhosImg.src = 'assets/images/sarhos.png';
 const ayakImg = new Image(); ayakImg.src = 'assets/images/ayak.png';
-const images = [dogmanImg, pepeImg, dncImg, lugerImg, aziz2Img, sarhosImg, ayakImg];
+const revanchImg = new Image(); revanchImg.src = 'assets/images/revanch.png';
+const images = [dogmanImg, pepeImg, dncImg, lugerImg, aziz2Img, sarhosImg, ayakImg, revanchImg];
 const pipeImg = new Image(); pipeImg.src = 'https://pixelartmaker.com/art/8afdf6b0f55c0d6.png';
 const bird = { x: 500, y: 250, vy: 0, size: 60, flap: -9, gravity: 0.35 };
 let baseSpeed = -1.6;
@@ -825,22 +1082,55 @@ let pipes = [];
 const pipeWidth = 180;
 let pipeTimer = 0;
 let menuOpen = false;
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 gameSound.addEventListener('ended', () => {
     jumpSoundAllowed = true;
 });
+
+/* === SKOR 5 VİDEOSU BİTİNCE === */
+bgVideo.addEventListener('ended', () => {
+    bgVideo.pause();
+    bgVideo.currentTime = 0;
+    bgVideo.style.display = 'none';
+    videoMode = false;
+
+    // Arka plan tekrar arka_plan.png olsun
+    nightMode = true;
+});
+
+/* === SKOR 20 KORKU VİDEOSU BİTİNCE === */
+korkuVideo.addEventListener('ended', () => {
+    korkuVideo.pause();
+    korkuVideo.currentTime = 0;
+    korkuVideo.style.display = 'none';
+
+    azizMode = false;   // draw() tekrar arka plan çizer
+    nightMode = true;   // arka_plan.png geri gelsin
+    jumpSoundAllowed = true;
+});
+
+/* === SKOR 80 BİDA VİDEOSU BİTİNCE === */
+bidaVideo.addEventListener('ended', () => {
+    bidaVideo.pause();
+    bidaVideo.currentTime = 0;
+    bidaVideo.style.display = 'none';
+    bidaVideoMode = false;
+
+    nightMode = true;
+});
 if (playerName) playerNameInput.value = playerName;
 highScoreEl.textContent = `En Yüksek: ${highScore}`;
 gameSound.volume = volume / 100;
-jumpSound.volume = volume / 100;
-deathSound.volume = volume / 100;
 specialSong.volume = volume / 100;
+jumpSound.volume = effectsVolume / 100;
+deathSound.volume = effectsVolume / 100;
 volumeSlider.value = volume;
 volumeValue.textContent = volume + '%';
+effectsVolumeSlider.value = effectsVolume;
+effectsVolumeValue.textContent = effectsVolume + '%';
 function updateGoldDisplay() {
-    goldDisplay.innerHTML = `ALTIN: ${gold} <span style="font-size:1.2em;">🪙</span>`;
+    goldDisplay.innerHTML = `ALTIN: ${gold} <img src="assets/images/altin.png" alt="Altın">`;
 }
 function savePlayerName() {
     localStorage.setItem('azizinKusuPlayerName', playerNameInput.value.trim());
@@ -848,51 +1138,53 @@ function savePlayerName() {
 function saveDifficulty() {
     localStorage.setItem('azizinKusuDifficulty', currentDifficulty);
 }
-function addDncToMenu() {
-    if (dncUnlocked && !document.getElementById('bird2')) {
-        const btn = document.createElement('button');
-        btn.id = 'bird2';
-        btn.style.backgroundImage = "url('assets/images/dnc.png')";
-        btn.onclick = () => selectBird(2);
-        menuBirds.appendChild(btn);
-    }
+function isBirdUnlocked(id) {
+    if (id === 0 || id === 1) return true;
+    if (id === 2) return dncUnlocked;
+    if (id === 3) return lugerUnlocked;
+    if (id === 4) return aziz2Unlocked;
+    if (id === 5) return sarhosUnlocked;
+    if (id === 6) return ayakUnlocked;
+    if (id === 7) return revanchUnlocked;
+    return false;
 }
-function addLugerToMenu() {
-    if (lugerUnlocked && !document.getElementById('bird3')) {
-        const btn = document.createElement('button');
-        btn.id = 'bird3';
-        btn.style.backgroundImage = "url('assets/images/luger.png')";
-        btn.onclick = () => selectBird(3);
-        menuBirds.appendChild(btn);
-    }
+// ====================== ŞIK KARAKTER MENÜ ======================
+const birdsData = [
+    {id: 0, name: 'MAYMUN', img: 'dogman.png'},
+    {id: 1, name: 'PEEPO CLAP', img: 'pepe.png', special: true},
+    {id: 2, name: 'ÖZEL BİREY DNC', img: 'dnc.png'},
+    {id: 3, name: 'ŞAŞKIN LUGER', img: 'luger.png'},
+    {id: 4, name: 'YARRATIK AZİZ', img: 'aziz2.png'},
+    {id: 5, name: 'SARHOŞ MAYMUN', img: 'sarhos.png'},
+    {id: 6, name: '36 BUJUK AYAK', img: 'ayak.png'},
+    {id: 7, name: 'REVANCH', img: 'revanch.png'}
+];
+function populateCharacterMenu() {
+    const container = document.getElementById('characterBirds');
+    container.innerHTML = '';
+    birdsData.forEach(b => {
+        if (!isBirdUnlocked(b.id)) return;
+        const item = document.createElement('div');
+        item.className = `shop-item ${selectedBird === b.id ? 'selected' : ''}`;
+        item.innerHTML = `
+            <h3>${b.name}</h3>
+            <div class="bird-select">
+                <button style="background-image: url('assets/images/${b.img}'); ${b.special ? 'background-color:#000 !important;' : ''}"></button>
+            </div>
+        `;
+        item.onclick = () => selectBird(b.id);
+        container.appendChild(item);
+    });
 }
-function addAziz2ToMenu() {
-    if (aziz2Unlocked && !document.getElementById('bird4')) {
-        const btn = document.createElement('button');
-        btn.id = 'bird4';
-        btn.style.backgroundImage = "url('assets/images/aziz2.png')";
-        btn.onclick = () => selectBird(4);
-        menuBirds.appendChild(btn);
-    }
+function selectBird(id) {
+    if (!isBirdUnlocked(id)) return;
+    selectedBird = id;
+    localStorage.setItem('azizinKusuSelectedBird', id);
+    document.querySelectorAll('#characterBirds .shop-item').forEach(el => el.classList.remove('selected'));
+    const selectedItem = Array.from(document.querySelectorAll('#characterBirds .shop-item')).find(item => item.textContent.includes(birdsData[id].name));
+    if (selectedItem) selectedItem.classList.add('selected');
 }
-function addSarhosToMenu() {
-    if (sarhosUnlocked && !document.getElementById('bird5')) {
-        const btn = document.createElement('button');
-        btn.id = 'bird5';
-        btn.style.backgroundImage = "url('assets/images/sarhos.png')";
-        btn.onclick = () => selectBird(5);
-        menuBirds.appendChild(btn);
-    }
-}
-function addAyakToMenu() {
-    if (ayakUnlocked && !document.getElementById('bird6')) {
-        const btn = document.createElement('button');
-        btn.id = 'bird6';
-        btn.style.backgroundImage = "url('assets/images/ayak.png')";
-        btn.onclick = () => selectBird(6);
-        menuBirds.appendChild(btn);
-    }
-}
+// ====================== LOAD LEADERBOARD ======================
 function loadLeaderboard() {
     const q = db.collection("leaderboard").orderBy("score", "desc").limit(10);
     q.onSnapshot((snapshot) => {
@@ -919,7 +1211,6 @@ function unlockDNC() {
         updateGoldDisplay();
         buyDncBtn.textContent = 'SATIN ALINDI!';
         buyDncBtn.disabled = true;
-        addDncToMenu();
         document.getElementById('item-dnc').classList.remove('locked');
     } else if (gold < 30) {
         alert('Yeterli altın yok!');
@@ -934,7 +1225,6 @@ function unlockLuger() {
         updateGoldDisplay();
         buyLugerBtn.textContent = 'SATIN ALINDI!';
         buyLugerBtn.disabled = true;
-        addLugerToMenu();
         document.getElementById('item-luger').classList.remove('locked');
     } else if (gold < 50) {
         alert('Yeterli altın yok!');
@@ -949,7 +1239,6 @@ function unlockAziz2() {
         updateGoldDisplay();
         buyAziz2Btn.textContent = 'SATIN ALINDI!';
         buyAziz2Btn.disabled = true;
-        addAziz2ToMenu();
         document.getElementById('item-aziz2').classList.remove('locked');
     } else if (gold < 100) {
         alert('Yeterli altın yok!');
@@ -964,7 +1253,6 @@ function unlockSarhos() {
         updateGoldDisplay();
         buySarhosBtn.textContent = 'SATIN ALINDI!';
         buySarhosBtn.disabled = true;
-        addSarhosToMenu();
         document.getElementById('item-sarhos').classList.remove('locked');
     } else if (gold < 150) {
         alert('Yeterli altın yok!');
@@ -979,9 +1267,22 @@ function unlockAyak() {
         updateGoldDisplay();
         buyAyakBtn.textContent = 'SATIN ALINDI!';
         buyAyakBtn.disabled = true;
-        addAyakToMenu();
         document.getElementById('item-ayak').classList.remove('locked');
     } else if (gold < 250) {
+        alert('Yeterli altın yok!');
+    }
+}
+function unlockRevanch() {
+    if (gold >= 300 && !revanchUnlocked) {
+        gold -= 300;
+        revanchUnlocked = true;
+        localStorage.setItem('revanchUnlocked', 'true');
+        localStorage.setItem('azizinKusuGold', gold);
+        updateGoldDisplay();
+        buyRevanchBtn.textContent = 'SATIN ALINDI!';
+        buyRevanchBtn.disabled = true;
+        document.getElementById('item-revanch').classList.remove('locked');
+    } else if (gold < 300) {
         alert('Yeterli altın yok!');
     }
 }
@@ -1023,8 +1324,8 @@ function unlockRainbow() {
 }
 let rainbowOffset = 0;
 function drawRainbowText(text, x, y) {
-    const colors = ['#ffff00', '#0000ff', '#00ff00', '#ff0000', '#800080', '#ff69b4', '#ffa500'];
-    ctx.font = '12px "Press Start 2P"';
+    const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#ee82ee'];
+    ctx.font = 'bold 14px "Press Start 2P"';
     let totalWidth = 0;
     for (let char of text) totalWidth += ctx.measureText(char).width;
     let offsetX = x - totalWidth / 2;
@@ -1032,19 +1333,14 @@ function drawRainbowText(text, x, y) {
         const char = text[i];
         const colorIndex = Math.floor((rainbowOffset + i) % colors.length);
         ctx.fillStyle = colors[colorIndex];
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.strokeText(char, offsetX, y);
         ctx.fillText(char, offsetX, y);
         offsetX += ctx.measureText(char).width;
     }
-    rainbowOffset += 0.1;
+    rainbowOffset += 0.15;
     if (rainbowOffset >= colors.length) rainbowOffset = 0;
-}
-function selectBird(id) {
-    if ((id === 2 && !dncUnlocked) || (id === 3 && !lugerUnlocked) || (id === 4 && !aziz2Unlocked) || (id === 5 && !sarhosUnlocked) || (id === 6 && !ayakUnlocked)) return;
-    selectedBird = id;
-    localStorage.setItem('azizinKusuSelectedBird', id);
-    document.querySelectorAll('#menuBirds button').forEach((b, i) => {
-        b.classList.toggle('selected', i === id);
-    });
 }
 function setDifficulty(diff) {
     currentDifficulty = diff;
@@ -1055,14 +1351,19 @@ function setDifficulty(diff) {
         case 'hard': baseSpeed = -3.0; break;
     }
     currentSpeed = baseSpeed;
-    document.querySelectorAll('.diff-btn').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.diff === diff);
-    });
 }
 function increaseSpeed() {
     if (score > 0 && score % 5 === 0) {
         currentSpeed -= 0.2;
     }
+}
+function closeAllMenus() {
+    menuEl.style.display = 'none';
+    shopEl.style.display = 'none';
+    characterMenu.style.display = 'none';
+    settingsMenu.style.display = 'none';
+    pauseMenu.style.display = 'none';
+    gameOverEl.style.display = 'none';
 }
 function startGame() {
     const name = playerNameInput.value.trim();
@@ -1070,19 +1371,28 @@ function startGame() {
         alert('Lütfen ismini gir!');
         return;
     }
+    if (name.length < 3) {
+        alert('İsim en az 3 harf olmalı!');
+        return;
+    }
+    if (!/^[a-zA-Z0-9çÇğĞıİöÖşŞüÜ]+$/.test(name)) {
+        alert('İsim sadece harf ve sayılardan oluşabilir, sembol veya virgül kullanma!');
+        return;
+    }
     playerName = name;
     savePlayerName();
     setDifficulty(currentDifficulty);
     gameState = 'ready';
-    menuEl.style.display = 'none';
-    shopEl.style.display = 'none';
+    closeAllMenus();
     lobbyShopBtn.style.display = 'none';
     lobbySettings.style.display = 'none';
     goldDisplay.style.display = 'none';
     readyMsgEl.style.display = 'block';
     score = 0;
+korkuPlayedThisRun = false;
     musicPlayedThisGame = false;
     jumpSoundAllowed = true;
+    korkuPlayedThisRun = false;
     gameSound.pause();
     gameSound.currentTime = 0;
     scoreEl.textContent = '0';
@@ -1096,12 +1406,15 @@ function startGame() {
     azizMode = false;
     bidaVideoMode = false;
     banVideoMode = false;
+bidaPlayedThisRun = false;
     bgVideo.style.display = 'none';
     bgVideo.pause();
     bidaVideo.style.display = 'none';
     bidaVideo.pause();
     banVideo.style.display = 'none';
     banVideo.pause();
+    korkuVideo.style.display = 'none';
+    korkuVideo.pause();
     nightBg.style.display = 'none';
     createPipe();
     deathSoundPlayed = false;
@@ -1122,59 +1435,74 @@ function startGame() {
     });
 }
 function restartGame() {
+    // ✅ YENİ OYUN İÇİN RESETLER
+    korkuPlayedThisRun = false;
+    bidaPlayedThisRun = false;
+
     if (score > highScore) {
         highScore = score;
         localStorage.setItem('azizinKusuHighScore', highScore);
-    }
     gold += score;
     localStorage.setItem('azizinKusuGold', gold);
     updateGoldDisplay();
     gameState = 'menu';
+    closeAllMenus();
     menuEl.style.display = 'block';
     lobbyShopBtn.style.display = 'block';
     lobbySettings.style.display = 'block';
     goldDisplay.style.display = 'block';
-    gameOverEl.style.display = 'none';
     readyMsgEl.style.display = 'none';
-    pauseMenu.style.display = 'none';
-    settingsMenu.style.display = 'none';
     gameSound.pause();
-    selectBird(selectedBird);
+    korkuVideo.pause();
+    korkuVideo.style.display = 'none';
+    bgVideo.pause();
+    bgVideo.style.display = 'none';
+    bidaVideo.pause();
+    bidaVideo.style.display = 'none';
+    banVideo.pause();
+    banVideo.style.display = 'none';
     deathSoundPlayed = false;
     menuOpen = false;
     socket.emit('leave');
+    nightBg.style.display = 'block';
+    nightBg.style.width = '100%';
+    nightBg.style.height = '100%';
+    nightBg.style.objectFit = 'cover';
 }
-function openPauseMenu() {
-    pauseMenu.style.display = 'block';
-    goldDisplay.style.display = 'block';
-    menuOpen = true;
-}
-function resumeGame() {
-    pauseMenu.style.display = 'none';
-    settingsMenu.style.display = 'none';
-    goldDisplay.style.display = 'none';
-    menuOpen = false;
-}
-function goToMainMenu() {
+    gold += score;
+    localStorage.setItem('azizinKusuGold', gold);
+    updateGoldDisplay();
     gameState = 'menu';
-    pauseMenu.style.display = 'none';
-    settingsMenu.style.display = 'none';
-    gameOverEl.style.display = 'none';
+    closeAllMenus();
     menuEl.style.display = 'block';
     lobbyShopBtn.style.display = 'block';
     lobbySettings.style.display = 'block';
     goldDisplay.style.display = 'block';
+    readyMsgEl.style.display = 'none';
     gameSound.pause();
+    korkuVideo.pause();
+    korkuVideo.style.display = 'none';
+    bgVideo.pause();
+    bgVideo.style.display = 'none';
+    bidaVideo.pause();
+    bidaVideo.style.display = 'none';
+    banVideo.pause();
+    banVideo.style.display = 'none';
+    deathSoundPlayed = false;
     menuOpen = false;
     socket.emit('leave');
+    nightBg.style.display = 'block';
+    nightBg.style.width = '100%';
+    nightBg.style.height = '100%';
+    nightBg.style.objectFit = 'cover';
 }
 function createPipe() {
     const topHeight = Math.random() * 200 + 150;
     pipes.push({ x: designWidth, top: topHeight, bottom: designHeight - topHeight - currentGap, passed: false });
 }
 function checkCollision() {
-    const birdRadius = bird.size / 2 * 0.8; // Daha dar hitbox için 80% boyut
-    if (bird.y + birdRadius > designHeight) return true;
+    const birdRadius = bird.size / 2 * 0.8;
+    if (bird.y + birdRadius > designHeight || bird.y - birdRadius < 0) return true;
     for (let p of pipes) {
         if (bird.x + birdRadius > p.x && bird.x - birdRadius < p.x + pipeWidth) {
             if (bird.y - birdRadius < p.top || bird.y + birdRadius > designHeight - p.bottom - 200) return true;
@@ -1191,14 +1519,14 @@ function update() {
         vy: bird.vy,
         score: score
     });
-    const birdRadius = bird.size / 2 * 0.8; // Dar hitbox
+    const birdRadius = bird.size / 2 * 0.8;
     for (let p of pipes) {
         p.x += currentSpeed;
         if (!p.passed && p.x + pipeWidth < bird.x - birdRadius) {
             p.passed = true;
             score++;
             scoreEl.textContent = score;
-            if (score > 40 && !specialSongPlayed) {
+            if (score > 200 && !specialSongPlayed) {
                 specialSongPlayed = true;
                 specialSong.currentTime = 0;
                 specialSong.play().catch(() => {});
@@ -1210,29 +1538,49 @@ function update() {
                 gameSound.play().catch(() => {});
                 jumpSoundAllowed = false;
             }
-            if (score > 5 && !videoMode) {
-                videoMode = true;
-                bgVideo.style.display = 'block';
-                bgVideo.play().catch(() => {});
-            }
+if (score >= 5 && !videoMode) {
+    videoMode = true;
+    bgVideo.style.display = 'block';
+    bgVideo.currentTime = 0;
+    bgVideo.play().catch(() => {});
+}
+// Skor 12 olunca 5'te başlayan video kapansın ve arka_plan.png geri gelsin
+if (score >= 12 && videoMode) {
+    videoMode = false;
+    bgVideo.pause();
+    bgVideo.currentTime = 0;
+    bgVideo.style.display = 'none';
+
+    // Arka plan tekrar arka_plan.png çizilsin
+    nightMode = true;
+}
             if (score > 10 && !specialBgMode) {
                 specialBgMode = true;
             }
-            if (score > 12 && !nightMode) {
-                nightMode = true;
-                nightBg.style.display = 'block';
-            }
-            if (score > 20 && !azizMode) {
-                azizMode = true;
-            }
-            if (score > 30 && azizMode) {
-                azizMode = false;
-            }
-            if (score > 80 && !bidaVideoMode) {
-                bidaVideoMode = true;
-                bidaVideo.style.display = 'block';
-                bidaVideo.play().catch(() => {});
-            }
+if (score >= 20 && !korkuPlayedThisRun) {
+    korkuPlayedThisRun = true;
+
+    azizMode = true;          // <-- BUNU EKLE
+    videoMode = false;        // <-- bgVideo açıksa kapat
+    bgVideo.pause();
+    bgVideo.style.display = 'none';
+
+    nightMode = false;
+    specialBgMode = false;
+
+    korkuVideo.style.display = 'block';
+    korkuVideo.currentTime = 0;
+    korkuVideo.play().catch(() => {});
+}
+if (score >= 80 && !bidaPlayedThisRun) {
+    bidaPlayedThisRun = true;
+    bidaVideoMode = true;
+
+    bidaVideo.style.display = 'block';
+    bidaVideo.currentTime = 0;
+
+    bidaVideo.play().catch(() => {});
+}
             if (score > 1000 && !banVideoMode) {
                 banVideoMode = true;
                 banVideo.style.display = 'block';
@@ -1261,13 +1609,14 @@ function update() {
         currentScoreEl.textContent = `SKOR: ${score}`;
         highScoreEl.textContent = `EN YÜKSEK: ${highScore}`;
         gameState = 'gameOver';
+        closeAllMenus();
         gameOverEl.style.display = 'block';
         readyMsgEl.style.display = 'none';
-        pauseMenu.style.display = 'none';
-        settingsMenu.style.display = 'none';
         gameSound.pause();
         specialSong.pause();
         specialSong.currentTime = 0;
+        korkuVideo.pause();
+        korkuVideo.style.display = 'none';
         socket.emit('leave');
     }
 }
@@ -1275,15 +1624,13 @@ function draw() {
     ctx.save();
     ctx.scale(canvas.width / designWidth, canvas.height / designHeight);
     ctx.clearRect(0, 0, designWidth, designHeight);
-    if (azizMode && backgroundAziz.complete) {
-        ctx.drawImage(backgroundAziz, 0, 0, designWidth, designHeight);
-    } else if (nightMode && backgroundSpecial.complete) {
-        ctx.drawImage(backgroundSpecial, 0, 0, designWidth, designHeight);
+    if (videoMode || azizMode || bidaVideoMode || banVideoMode) {
+        // Videolar aktifse arka plan resmi çizme
+    } else if (nightMode && backgroundDay.complete) {
+        ctx.drawImage(backgroundDay, 0, 0, designWidth, designHeight);
     } else if (specialBgMode && backgroundSpecial.complete) {
         ctx.drawImage(backgroundSpecial, 0, 0, designWidth, designHeight);
-    } else if (score > 12 && backgroundDay.complete) {
-        ctx.drawImage(backgroundDay, 0, 0, designWidth, designHeight);
-    } else if (!videoMode && backgroundDay.complete) {
+    } else if (backgroundDay.complete) {
         ctx.drawImage(backgroundDay, 0, 0, designWidth, designHeight);
     }
     if (gameState === 'playing' || gameState === 'ready') {
@@ -1304,18 +1651,21 @@ function draw() {
             ctx.rotate(bird.vy * 0.04);
             ctx.drawImage(ownImg, -bird.size/2, -bird.size/2, bird.size, bird.size);
             ctx.restore();
-            ctx.font = '12px "Press Start 2P"';
-            const textY = bird.y - bird.size / 2 - 10; // Ortak Y pozisyonu
+            ctx.font = 'bold 14px "Press Start 2P"';
+            const textY = bird.y - bird.size / 2 - 10;
             if (isRainbow) {
                 drawRainbowText(playerName, bird.x, textY);
             } else {
                 const textWidth = ctx.measureText(playerName).width;
                 const textX = bird.x - textWidth / 2;
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 5;
-                ctx.shadowOffsetX = 1;
-                ctx.shadowOffsetY = 1;
+                ctx.shadowColor = 'rgba(0,0,0,0.7)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
                 ctx.fillStyle = nameColor;
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.strokeText(playerName, textX, textY);
                 ctx.fillText(playerName, textX, textY);
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -1337,18 +1687,21 @@ function draw() {
                         ctx.rotate(other.vy * 0.04);
                         ctx.drawImage(otherImg, -bird.size/2, -bird.size/2, bird.size, bird.size);
                         ctx.restore();
-                        ctx.font = '12px "Press Start 2P"';
-                        const otherTextY = other.y - bird.size / 2 - 10; // Ortak Y pozisyonu diğer oyuncular için
+                        ctx.font = 'bold 14px "Press Start 2P"';
+                        const otherTextY = other.y - bird.size / 2 - 10;
                         if (other.isRainbow) {
                             drawRainbowText(other.name, relX, otherTextY);
                         } else {
                             const otherTextWidth = ctx.measureText(other.name).width;
                             const otherTextX = relX - otherTextWidth / 2;
-                            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                            ctx.shadowBlur = 5;
-                            ctx.shadowOffsetX = 1;
-                            ctx.shadowOffsetY = 1;
+                            ctx.shadowColor = 'rgba(0,0,0,0.7)';
+                            ctx.shadowBlur = 10;
+                            ctx.shadowOffsetX = 2;
+                            ctx.shadowOffsetY = 2;
                             ctx.fillStyle = other.nameColor || 'white';
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2;
+                            ctx.strokeText(other.name, otherTextX, otherTextY);
                             ctx.fillText(other.name, otherTextX, otherTextY);
                             ctx.shadowColor = 'transparent';
                             ctx.shadowBlur = 0;
@@ -1386,39 +1739,40 @@ function flap() {
 volumeSlider.oninput = () => {
     volume = volumeSlider.value;
     gameSound.volume = volume / 100;
-    jumpSound.volume = volume / 100;
-    deathSound.volume = volume / 100;
     specialSong.volume = volume / 100;
     volumeValue.textContent = volume + '%';
     localStorage.setItem('azizinKusuVolume', volume);
+};
+effectsVolumeSlider.oninput = () => {
+    effectsVolume = effectsVolumeSlider.value;
+    jumpSound.volume = effectsVolume / 100;
+    deathSound.volume = effectsVolume / 100;
+    effectsVolumeValue.textContent = effectsVolume + '%';
+    localStorage.setItem('azizinKusuEffectsVolume', effectsVolume);
 };
 document.addEventListener('keydown', e => {
     if (e.code === 'Escape') {
         e.preventDefault();
         if (gameState === 'gameOver') {
             restartGame();
-            gameOverEl.style.display = 'none';
             return;
         }
         if (settingsMenu.style.display === 'block' && gameState === 'menu') {
-            settingsMenu.style.display = 'none';
+            closeAllMenus();
             menuEl.style.display = 'block';
-            lobbySettingsOpen = false;
             return;
         }
         if (shopEl.style.display === 'block') {
-            shopEl.style.display = 'none';
+            closeAllMenus();
             menuEl.style.display = 'block';
             return;
         }
-        if (gameState === 'playing') {
-            if (menuOpen) {
-                resumeGame();
-            } else {
-                openPauseMenu();
-            }
+        if (characterMenu.style.display === 'block') {
+            closeAllMenus();
+            menuEl.style.display = 'block';
             return;
         }
+        return;
     }
     if (e.code === 'Space') {
         e.preventDefault();
@@ -1438,56 +1792,53 @@ canvas.addEventListener('touchstart', e => {
 canvas.addEventListener('mousedown', e => {
     if (e.button === 0) flap();
 });
-document.addEventListener('click', () => {
-    jumpSound.play().catch(() => {});
-    jumpSound.pause();
-    jumpSound.currentTime = 0;
-}, { once: true });
-document.getElementById('resumeBtn').onclick = resumeGame;
-document.getElementById('settingsBtn').onclick = () => {
+document.getElementById('resumeBtn').onclick = () => {
     pauseMenu.style.display = 'none';
+    settingsMenu.style.display = 'none';
+    goldDisplay.style.display = 'none';
+    menuOpen = false;
+};
+document.getElementById('settingsBtn').onclick = () => {
+    closeAllMenus();
     settingsMenu.style.display = 'block';
 };
-document.getElementById('mainMenuBtn').onclick = goToMainMenu;
+document.getElementById('mainMenuBtn').onclick = () => {
+disableGameCursor();
+    gameState = 'menu';
+    closeAllMenus();
+    menuEl.style.display = 'block';
+    lobbyShopBtn.style.display = 'block';
+    lobbySettings.style.display = 'block';
+    goldDisplay.style.display = 'block';
+    gameSound.pause();
+    menuOpen = false;
+    socket.emit('leave');
+};
 playerNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
 document.getElementById('startBtn').onclick = startGame;
 document.getElementById('restartBtn').onclick = restartGame;
 lobbyShopBtn.onclick = () => {
-    if (shopEl.style.display === 'block') {
-        shopEl.style.display = 'none';
-        menuEl.style.display = 'block';
-    } else {
-        menuEl.style.display = 'none';
-        shopEl.style.display = 'block';
-        updateGoldDisplay();
-    }
+    closeAllMenus();
+    shopEl.style.display = 'block';
+    updateGoldDisplay();
 };
 lobbySettings.onclick = () => {
-    if (lobbySettingsOpen) {
-        settingsMenu.style.display = 'none';
-        menuEl.style.display = 'block';
-        lobbySettingsOpen = false;
-    } else {
-        menuEl.style.display = 'none';
-        shopEl.style.display = 'none';
-        pauseMenu.style.display = 'none';
-        settingsMenu.style.display = 'block';
-        lobbySettingsOpen = true;
-    }
+    closeAllMenus();
+    settingsMenu.style.display = 'block';
+    lobbySettingsOpen = true;
     goldDisplay.style.display = 'block';
 };
 document.getElementById('backBtn').onclick = () => {
-    shopEl.style.display = 'none';
+    closeAllMenus();
     menuEl.style.display = 'block';
 };
 settingsBackBtn.onclick = () => {
     if (gameState === 'playing') {
-        settingsMenu.style.display = 'none';
+        closeAllMenus();
         pauseMenu.style.display = 'block';
     } else {
-        settingsMenu.style.display = 'none';
+        closeAllMenus();
         menuEl.style.display = 'block';
-        lobbySettingsOpen = false;
     }
 };
 buyDncBtn.onclick = unlockDNC;
@@ -1495,12 +1846,8 @@ buyLugerBtn.onclick = unlockLuger;
 buyAziz2Btn.onclick = unlockAziz2;
 buySarhosBtn.onclick = unlockSarhos;
 buyAyakBtn.onclick = unlockAyak;
+buyRevanchBtn.onclick = unlockRevanch;
 buyRainbowBtn.onclick = unlockRainbow;
-document.querySelectorAll('.diff-btn').forEach(btn => {
-    btn.onclick = () => setDifficulty(btn.dataset.diff);
-});
-document.getElementById('bird0').onclick = () => selectBird(0);
-document.getElementById('bird1').onclick = () => selectBird(1);
 document.querySelectorAll('.color-btn:not(#rainbowBtn)').forEach(btn => {
     btn.onclick = () => selectNameColor(btn.dataset.color);
 });
@@ -1508,35 +1855,52 @@ document.getElementById('rainbowBtn').onclick = () => {
     if (rainbowUnlocked) selectRainbow();
     else unlockRainbow();
 };
+characterSelectBtn.onclick = () => {
+    closeAllMenus();
+    populateCharacterMenu();
+    characterMenu.style.display = 'block';
+};
+characterBackBtn.onclick = () => {
+    closeAllMenus();
+    menuEl.style.display = 'block';
+};
+characterTopBackBtn.onclick = () => {
+    closeAllMenus();
+    menuEl.style.display = 'block';
+};
+shopTopBackBtn.onclick = () => {
+    closeAllMenus();
+    menuEl.style.display = 'block';
+};
 if (dncUnlocked) {
-    addDncToMenu();
     buyDncBtn.textContent = 'SATIN ALINDI!';
     buyDncBtn.disabled = true;
     document.getElementById('item-dnc').classList.remove('locked');
 }
 if (lugerUnlocked) {
-    addLugerToMenu();
     buyLugerBtn.textContent = 'SATIN ALINDI!';
     buyLugerBtn.disabled = true;
     document.getElementById('item-luger').classList.remove('locked');
 }
 if (aziz2Unlocked) {
-    addAziz2ToMenu();
     buyAziz2Btn.textContent = 'SATIN ALINDI!';
     buyAziz2Btn.disabled = true;
     document.getElementById('item-aziz2').classList.remove('locked');
 }
 if (sarhosUnlocked) {
-    addSarhosToMenu();
     buySarhosBtn.textContent = 'SATIN ALINDI!';
     buySarhosBtn.disabled = true;
     document.getElementById('item-sarhos').classList.remove('locked');
 }
 if (ayakUnlocked) {
-    addAyakToMenu();
     buyAyakBtn.textContent = 'SATIN ALINDI!';
     buyAyakBtn.disabled = true;
     document.getElementById('item-ayak').classList.remove('locked');
+}
+if (revanchUnlocked) {
+    buyRevanchBtn.textContent = 'SATIN ALINDI!';
+    buyRevanchBtn.disabled = true;
+    document.getElementById('item-revanch').classList.remove('locked');
 }
 if (rainbowUnlocked) {
     buyRainbowBtn.textContent = 'SATIN ALINDI!';
@@ -1550,18 +1914,27 @@ if (isRainbow) {
         if (btn.dataset.color === nameColor) btn.classList.add('selected');
     });
 }
+if (!isBirdUnlocked(selectedBird)) {
+    selectedBird = 1;
+    localStorage.setItem('azizinKusuSelectedBird', selectedBird);
+}
+populateCharacterMenu();
+selectBird(selectedBird);
 updateGoldDisplay();
 goldDisplay.style.display = 'block';
 lobbyShopBtn.style.display = 'block';
 lobbySettings.style.display = 'block';
 loadLeaderboard();
 setDifficulty(currentDifficulty);
-selectBird(selectedBird);
 gameState = 'menu';
-gameOverEl.style.display = 'none';
 readyMsgEl.style.display = 'none';
 pauseMenu.style.display = 'none';
 settingsMenu.style.display = 'none';
+characterMenu.style.display = 'none';
+nightBg.style.display = 'block';
+nightBg.style.width = '100%';
+nightBg.style.height = '100%';
+nightBg.style.objectFit = 'cover';
 let intervalId = null;
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && gameState === 'playing') {
@@ -1597,62 +1970,13 @@ socket.on('players', (players) => {
     otherPlayers = players.filter(p => p.id !== socket.id);
 });
 gameLoop();
-// Antihile Koruması
-let devtoolsOpen = false;
-const threshold = 160; // Devtools genişliği için eşik değeri (tarayıcıya göre değişebilir)
-const checkDevTools = () => {
-  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-  const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-  if (widthThreshold || heightThreshold) {
-    devtoolsOpen = true;
-    alert("Hile tespit edildi! Geliştirici araçları kapatın.");
-    socket.disconnect();
-    gameState = 'menu';
-    score = 0;
-    // Oyunu kilitle veya sıfırla
-    document.body.innerHTML = "<h1>Hile Kullanımı Tespit Edildi! Sayfayı Yenileyin.</h1>";
-  }
-};
-setInterval(checkDevTools, 500);
-// Değişken bütünlüğü kontrolü (basit tamper detection)
-const originalGravity = bird.gravity;
-const originalFlap = bird.flap;
-const checkVariables = () => {
-  if (bird.gravity !== originalGravity || bird.flap !== originalFlap || score < 0 || bird.y < 0) {
-    alert("Oyun değişkenlerinde değişiklik tespit edildi! Hile kullanımı.");
-    socket.disconnect();
-    gameState = 'menu';
-    score = 0;
-    document.body.innerHTML = "<h1>Hile Kullanımı Tespit Edildi! Sayfayı Yenileyin.</h1>";
-  }
-};
-setInterval(checkVariables, 1000);
-// Konsol müdahalesini zorlaştırmak için console'u override et (kısmen etkili)
-console.log = () => {};
-console.error = () => {};
-// Debugger'ı yakala
-setInterval(() => {
-  const start = performance.now();
-  debugger;
-  const end = performance.now();
-  if (end - start > 100) { // Debugger aktifse gecikme olur
-    alert("Debugger tespit edildi! Hile kullanımı.");
-    socket.disconnect();
-    gameState = 'menu';
-    score = 0;
-    document.body.innerHTML = "<h1>Hile Kullanımı Tespit Edildi! Sayfayı Yenileyin.</h1>";
-  }
-}, 2000);
-// Ek koruma: F12 basıldığında kodları gizle (console.clear ve alert)
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'F12') {
+    document.body.classList.add('game-cursor');
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.shiftKey && e.keyCode === 74) || (e.ctrlKey && e.keyCode === 85)) {
         e.preventDefault();
-        console.clear();
-        alert("Geliştirici araçları kullanımına izin verilmiyor!");
-        // Oyunu kilitle
-        document.body.innerHTML = "<h1>Oyun Kodu Koruma Altında! Sayfayı Yenileyin.</h1>";
     }
 });
-</script>
+    </script>
 </body>
 </html>
